@@ -1,0 +1,52 @@
+{
+	admin off
+	servers {
+		timeouts {
+			read_header 10s
+			read_body 25s
+		}
+	}
+}
+
+https://{$RAG_DOMAIN} {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	basic_auth {
+		import /run/secrets/rag-users
+	}
+
+	@api_json {
+		method POST
+		path /api/v1/chat /api/v1/approvals /api/v1/query
+	}
+	request_body @api_json {
+		max_size 16KiB
+	}
+
+	@uploads path /api/v1/files /api/v1/files/preview /_stcore/upload_file/*
+	request_body @uploads {
+		max_size 11MiB
+	}
+
+	handle /api/v1/* {
+		reverse_proxy api:8000 {
+			header_up -Authorization
+			header_up X-Rag-User {http.auth.user.id}
+			header_up X-Rag-Gateway-Key {$RAG_GATEWAY_KEY}
+		}
+	}
+
+	handle {
+		reverse_proxy ui:8501 {
+			header_up -Authorization
+			header_up X-Rag-User {http.auth.user.id}
+			header_up X-Rag-Gateway-Key {$RAG_GATEWAY_KEY}
+		}
+	}
+}

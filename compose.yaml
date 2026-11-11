@@ -1,0 +1,81 @@
+services:
+  api:
+    build:
+      context: .
+      target: api
+    environment:
+      RAG_DATA_DIR: /state
+      RAG_SANDBOX_SOCKET: /run/rag/sandbox.sock
+      RAG_LANGSMITH_EXPORT: ${RAG_LANGSMITH_EXPORT:-false}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-rag-step8}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      LLM_PROVIDER: ${LLM_PROVIDER:-deepseek}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.deepseek.com}
+      LLM_MODEL: ${RAG_LLM_MODEL:-deepseek-v4-pro}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0}
+    volumes:
+      - state:/state
+      - sandbox_rpc:/run/rag:ro
+    ports:
+      - "127.0.0.1:${RAG_API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/healthz', timeout=2).close()"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      sandbox-broker:
+        condition: service_healthy
+
+  ui:
+    build:
+      context: .
+      target: ui
+    environment:
+      RAG_API_URL: http://api:8000
+    ports:
+      - "127.0.0.1:${RAG_UI_PORT:-8501}:8501"
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8501/_stcore/health', timeout=2).close()"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      api:
+        condition: service_healthy
+
+  sandbox-broker:
+    build:
+      context: .
+      target: broker
+    network_mode: none
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+      RAG_SANDBOX_IMAGE: ${RAG_SANDBOX_IMAGE:-rag-step7-sandbox:1}
+    volumes:
+      - sandbox_rpc:/run/rag
+      - type: bind
+        source: ${RAG_DOCKER_SOCKET:-/var/run/docker.sock}
+        target: /var/run/docker.sock
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; c = httpx.Client(transport=httpx.HTTPTransport(uds='/run/rag/sandbox.sock'), timeout=2); c.get('http://sandbox/healthz').raise_for_status()"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+    depends_on:
+      sandbox-image:
+        condition: service_completed_successfully
+
+  sandbox-image:
+    build: ./sandbox/step7
+    image: ${RAG_SANDBOX_IMAGE:-rag-step7-sandbox:1}
+    entrypoint: ["python", "-c", "pass"]
+    network_mode: none
+
+volumes:
+  state:
+  sandbox_rpc:

@@ -1,0 +1,6 @@
+pandas==2.3.3
+openpyxl==3.1.5
+xlrd==2.0.2
+plotly==7.1.0
+pydantic==2.14.3
+defusedxml==0.7.1

@@ -1,0 +1,9 @@
+*
+!Dockerfile
+!requirements.txt
+!protocol.py
+!worker.py
+!tasks.py
+!audit.py
+!panel.py
+!tabular.py

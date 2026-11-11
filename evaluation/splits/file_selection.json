@@ -1,0 +1,22 @@
+{
+  "original": [
+    {"id": "workbook_provinces", "question": "2021 年电信业务前 10 省份并画图", "expected_rows": 322, "limit": 10},
+    {"id": "workbook_cities", "question": "2021 年人口最多 5 城市并画图", "expected_rows": 322, "limit": 5}
+  ],
+  "synthetic": [
+    {"id": "single_year", "question": "统计 2021 年收入合计", "filters": [{"column": 0, "operator": "eq", "value": 2021}]},
+    {"id": "province_top", "question": "2021 年筛选收入大于 2 的记录，按省份合计并列出前 2 名并画图", "filters": [{"column": 0, "operator": "eq", "value": 2021}, {"column": 3, "operator": "gt", "value": 2}], "statistic": "sum", "groups": [[2]], "limit": 2, "chart": true},
+    {"id": "city_bottom", "question": "筛选 2021 年的记录，列出收入最少的两条明细并画图", "filters": [{"column": 0, "operator": "eq", "value": 2021}], "statistic": "records", "labels": [1], "limit": 2, "direction": "asc", "chart": true},
+    {"id": "inclusive_range", "question": "筛选 2020 到 2021 年并统计收入合计", "filters": [{"column": 0, "operator": "between", "value": [2020, 2021]}]},
+    {"id": "multiple_values", "question": "筛选省份为 West 或 South 的记录，统计收入合计", "filters": [{"column": 2, "operator": "in", "value": [" West ", "ＳＯＵＴＨ"]}]},
+    {"id": "literal_contains", "question": "筛选城市名含 [.] 的记录并统计收入合计", "filters": [{"column": 1, "operator": "contains", "value": "[.]"}]},
+    {"id": "not_equal_and_ceiling", "question": "排除 North，统计收入不超过 9 的记录的收入合计", "filters": [{"column": 2, "operator": "ne", "value": "North"}, {"column": 3, "operator": "le", "value": 9}]},
+    {"id": "ge_and_lt", "question": "筛选收入不少于 7 且小于 1000 的记录并统计合计", "filters": [{"column": 3, "operator": "ge", "value": 7}, {"column": 3, "operator": "lt", "value": 1000}]},
+    {"id": "chart_above_25", "question": "按收入列出前 30 条城市记录并画图", "filters": [], "statistic": "records", "labels": [1], "limit": 30, "chart": true, "extended": true},
+    {"id": "no_matches", "question": "统计 2030 年收入合计", "filters": [{"column": 0, "operator": "eq", "value": 2030}], "clarification": "匹配 0"},
+    {"id": "invalid_column", "question": "筛选地区再统计收入合计", "filters": [{"column": 49, "operator": "eq", "value": "North"}], "clarification": "不存在"},
+    {"id": "limit_without_order", "question": "按省份合计收入，列前 2 名", "filters": [], "groups": [[2]], "limit": 2, "omit_order": true, "clarification": "排序"},
+    {"id": "omitted_year", "question": "统计 2021 年收入合计", "filters": [], "clarification": "筛选条件"},
+    {"id": "omitted_named_filter", "question": "统计 2021 年且省份=West 的收入合计", "filters": [{"column": 0, "operator": "eq", "value": 2021}], "clarification": "省份"}
+  ]
+}

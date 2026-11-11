@@ -1,0 +1,11 @@
+services:
+  api:
+    environment:
+      RAG_BIRD_ROOT: /bird
+    volumes:
+      - type: bind
+        source: ${RAG_BIRD_DATA_DIR:?Set RAG_BIRD_DATA_DIR to the local BIRD dev_databases directory}
+        target: /bird
+        read_only: true
+        bind:
+          create_host_path: false

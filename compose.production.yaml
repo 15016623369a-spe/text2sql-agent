@@ -1,0 +1,85 @@
+services:
+  api:
+    ports: !reset []
+    environment:
+      RAG_DEPLOYMENT: production
+      RAG_GATEWAY_KEY: ${RAG_GATEWAY_KEY:?Set a 64-character hexadecimal gateway key}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=64m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    pids_limit: 128
+
+  ui:
+    ports: !reset []
+    environment:
+      RAG_DEPLOYMENT: production
+      RAG_GATEWAY_KEY: ${RAG_GATEWAY_KEY:?Set a 64-character hexadecimal gateway key}
+      STREAMLIT_BROWSER_SERVER_ADDRESS: ${RAG_DOMAIN:?Set the HTTPS host name}
+      STREAMLIT_BROWSER_SERVER_PORT: ${RAG_HTTPS_PORT:-443}
+      STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION: "true"
+      STREAMLIT_SERVER_MAX_UPLOAD_SIZE: "10"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=64m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    pids_limit: 128
+
+  sandbox-broker:
+    environment:
+      RAG_SANDBOX_IMAGE: ${RAG_SANDBOX_IMAGE:?Set a release-specific worker image tag}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=32m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 384m
+    pids_limit: 128
+
+  sandbox-image:
+    image: ${RAG_SANDBOX_IMAGE:?Set a release-specific worker image tag}
+
+  gateway:
+    image: caddy:2.11.9-alpine
+    environment:
+      RAG_DOMAIN: ${RAG_DOMAIN:?Set the HTTPS host name}
+      RAG_GATEWAY_KEY: ${RAG_GATEWAY_KEY:?Set a 64-character hexadecimal gateway key}
+    ports:
+      - "${RAG_GATEWAY_BIND:-127.0.0.1}:${RAG_HTTP_PORT:-80}:80"
+      - "${RAG_GATEWAY_BIND:-127.0.0.1}:${RAG_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    secrets:
+      - source: rag_users
+        target: rag-users
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=16m
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    pids_limit: 128
+    depends_on:
+      ui:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+
+secrets:
+  rag_users:
+    file: ${RAG_USERS_FILE:?Set a local Caddy user hash file path}
+
+volumes:
+  caddy_data:
+  caddy_config:

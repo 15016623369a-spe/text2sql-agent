@@ -1,0 +1,83 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.cover
+.hypothesis/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+htmlcov/
+
+# --- 虚拟环境 ---
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# --- 密钥 / 环境变量 ---
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# --- 数据与运行时产物 ---
+data/bird/*
+!data/bird/SOURCES.md
+!data/bird/README.md
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+logs/
+*.log
+
+# --- IDE / 编辑器 / 系统 ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Local evaluation runs
+/evaluation/results/
+
+# Local Step 6 demo data and checkpoints
+/data/step6_demo/
+
+# Local Step 8 product state
+/data/step8/
+
+# Local deployment credentials and recovery artifacts
+/deploy/users.caddy
+/deploy/*.secret
+/backups/
+
+# Local planning notes and generated state backups
+/Text2SQL-Agent开发计划.md
+/rag-state*.tar*

@@ -1,0 +1,18 @@
+{
+  "source": "data/bird/mini_dev_sqlite.jsonl",
+  "seed": 42,
+  "stratify_by": [
+    "db_id",
+    "difficulty"
+  ],
+  "total_questions": 500,
+  "dev_n": 50,
+  "eval_n": 200,
+  "unused_n": 250,
+  "method": "最大余数法比例分层抽样（各层名额 ∝ 题量；层内按固定种子 shuffle）",
+  "population_difficulty": {
+    "challenging": 460,
+    "moderate": 32,
+    "simple": 8
+  }
+}
