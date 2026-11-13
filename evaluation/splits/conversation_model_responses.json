@@ -1,0 +1,114 @@
+{
+  "format": 1,
+  "model": "deepseek-v4-pro",
+  "responses": {
+    "01fd9887a0d84970a057ec3db8ccbe584cf14ac24cb5152c4fff3e4c67d211d2": [
+      {
+        "choices": [
+          {
+            "message": {
+              "content": "{\"unsupported\":true}"
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 6,
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 290,
+          "prompt_tokens": 546,
+          "total_tokens": 552
+        }
+      }
+    ],
+    "685cfeb8731b7861e900531f5b2d63357430afbe3dd5b6230f86b9f4493901c6": [
+      {
+        "choices": [
+          {
+            "message": {
+              "content": "{\n  \"sql\": \"SELECT id AS 订单编号, amount_cents / 100.0 AS 原始订单金额_元 FROM orders WHERE ordered_on >= '2026-10-01' AND ordered_on < '2026-11-01' ORDER BY amount_cents ASC LIMIT 2\"\n}"
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 66,
+          "prompt_cache_hit_tokens": 512,
+          "prompt_cache_miss_tokens": 84,
+          "prompt_tokens": 596,
+          "total_tokens": 662
+        }
+      }
+    ],
+    "6de1666f5d4e535471068824d34f7364966a764158462da36435223fb19b2026": [
+      {
+        "choices": [
+          {
+            "message": {
+              "content": "{\n  \"sql\": \"SELECT id AS 订单编号, refund_cents / 100.0 AS 退款金额 FROM orders ORDER BY refund_cents DESC LIMIT 2\"\n}"
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 39,
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 305,
+          "prompt_tokens": 561,
+          "total_tokens": 600
+        }
+      }
+    ],
+    "796c0f63eb153adc3ea1ac8fd932bb58b9acdeb2cf688c0f2b02c4da87dbac3c": [
+      {
+        "choices": [
+          {
+            "message": {
+              "content": "{\n  \"sql\": \"SELECT id AS 订单编号, region AS 地区, ordered_on AS 下单日期 FROM orders ORDER BY id ASC\"\n}"
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 32,
+          "prompt_cache_hit_tokens": 512,
+          "prompt_cache_miss_tokens": 44,
+          "prompt_tokens": 556,
+          "total_tokens": 588
+        }
+      }
+    ],
+    "adcf75f11c31e222797fa765e69d725612e730360c9bb572ddae55cd1e77e0d5": [
+      {
+        "choices": [
+          {
+            "message": {
+              "content": "{\n  \"sql\": \"SELECT COUNT(*) AS 订单数 FROM orders\"\n}"
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 17,
+          "prompt_cache_hit_tokens": 512,
+          "prompt_cache_miss_tokens": 34,
+          "prompt_tokens": 546,
+          "total_tokens": 563
+        }
+      }
+    ],
+    "b06cff03ab6e92b50702587f566396715f7079c508989124f5e5fef31edbb1c2": [
+      {
+        "choices": [
+          {
+            "message": {
+              "content": "{\n  \"sql\": \"SELECT region, COUNT(*) AS 退款订单数 FROM orders WHERE refund_cents > 0 GROUP BY region\"\n}"
+            }
+          }
+        ],
+        "usage": {
+          "completion_tokens": 30,
+          "prompt_cache_hit_tokens": 512,
+          "prompt_cache_miss_tokens": 40,
+          "prompt_tokens": 552,
+          "total_tokens": 582
+        }
+      }
+    ]
+  }
+}

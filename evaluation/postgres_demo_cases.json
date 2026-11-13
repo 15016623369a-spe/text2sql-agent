@@ -1,0 +1,72 @@
+[
+  {
+    "id": "completed-orders-by-month",
+    "question": "统计 2026 年 9 月到 11 月每月已完成订单数。按下单月份升序，返回 YYYY-MM 和订单数。",
+    "tables": ["orders"],
+    "sql": "SELECT TO_CHAR(order_date, 'YYYY-MM') AS month, COUNT(*) AS orders FROM orders WHERE status = 'completed' AND order_date >= DATE '2026-09-01' AND order_date < DATE '2026-12-01' GROUP BY 1 ORDER BY 1",
+    "expected_rows": [["2026-09", 3], ["2026-10", 4], ["2026-11", 2]]
+  },
+  {
+    "id": "top-products",
+    "question": "在全部已完成订单中，按销售件数从高到低列出前三名商品。返回商品名和销售件数，同数时按商品名升序。",
+    "tables": ["orders", "order_items", "products"],
+    "sql": "SELECT p.product_name, SUM(i.quantity) AS units FROM orders o JOIN order_items i USING (order_id) JOIN products p USING (product_id) WHERE o.status = 'completed' GROUP BY p.product_name ORDER BY units DESC, p.product_name LIMIT 3",
+    "expected_rows": [["Nova Monitor", 8], ["Orbit Keyboard", 6], ["Pico Mouse", 5]]
+  },
+  {
+    "id": "net-revenue-by-region",
+    "question": "按客户所在地区计算 2026 年 10 月下单订单的净收入。净收入是已捕获付款金额减去这些付款的全部退款，付款可能拆单、同一付款可能多次退款。按地区名称升序，返回地区名和净收入（元）。",
+    "tables": ["regions", "customers", "orders", "payments", "refunds"],
+    "sql": "WITH refunds_by_payment AS (SELECT payment_id, SUM(amount) AS refunded FROM refunds GROUP BY payment_id) SELECT r.region_name, SUM(p.amount - COALESCE(f.refunded, 0)) AS net_revenue FROM orders o JOIN customers c USING (customer_id) JOIN regions r USING (region_id) JOIN payments p USING (order_id) LEFT JOIN refunds_by_payment f USING (payment_id) WHERE o.order_date >= DATE '2026-10-01' AND o.order_date < DATE '2026-11-01' AND p.status = 'captured' GROUP BY r.region_name ORDER BY r.region_name",
+    "expected_rows": [["North", 1040], ["South", 1935], ["West", 920]]
+  },
+  {
+    "id": "low-stock",
+    "question": "哪些仓库的商品可用库存不超过 5 件？包含零库存。返回仓库名、商品名、库存件数，按库存件数、仓库名、商品名依次升序。",
+    "tables": ["warehouses", "products", "inventory"],
+    "sql": "SELECT w.warehouse_name, p.product_name, i.quantity_on_hand FROM inventory i JOIN warehouses w USING (warehouse_id) JOIN products p USING (product_id) WHERE i.quantity_on_hand <= 5 ORDER BY i.quantity_on_hand, w.warehouse_name, p.product_name",
+    "expected_rows": [["North Hub", "USB-C Hub", 0], ["West Hub", "Apex Laptop", 2], ["South Hub", "Nova Monitor", 4], ["West Hub", "Carry Case", 4], ["South Hub", "Pico Mouse", 5], ["West Hub", "USB-C Hub", 5]]
+  },
+  {
+    "id": "split-payments",
+    "question": "哪些订单有两笔或更多已捕获付款？按订单编号升序，返回订单编号和已捕获付款笔数。",
+    "tables": ["payments"],
+    "sql": "SELECT order_id, COUNT(*) AS payment_count FROM payments WHERE status = 'captured' GROUP BY order_id HAVING COUNT(*) >= 2 ORDER BY order_id",
+    "expected_rows": [[1005, 2]]
+  },
+  {
+    "id": "captured-payment-by-method",
+    "question": "按付款方式统计 2026 年 10 月下单订单的已捕获付款金额。按付款方式升序，返回付款方式和总金额（元）。",
+    "tables": ["orders", "payments"],
+    "sql": "SELECT p.method, SUM(p.amount) AS total FROM payments p JOIN orders o USING (order_id) WHERE p.status = 'captured' AND o.order_date >= DATE '2026-10-01' AND o.order_date < DATE '2026-11-01' GROUP BY p.method ORDER BY p.method",
+    "expected_rows": [["bank", 1000], ["card", 3215]]
+  },
+  {
+    "id": "gross-sales-by-category",
+    "question": "按商品类别统计所有已完成订单的毛销售额，按下单时单价乘数量。按毛销售额降序，返回类别名称和毛销售额（元）。",
+    "tables": ["categories", "products", "orders", "order_items"],
+    "sql": "SELECT c.category_name, SUM(i.quantity * i.unit_price) AS gross_sales FROM order_items i JOIN orders o USING (order_id) JOIN products p USING (product_id) JOIN categories c USING (category_id) WHERE o.status = 'completed' GROUP BY c.category_name ORDER BY gross_sales DESC",
+    "expected_rows": [["Hardware", 6820], ["Accessories", 825], ["Service", 90]]
+  },
+  {
+    "id": "customers-without-completed-orders",
+    "question": "哪些客户在 2026 年 10 月没有已完成订单？返回客户名并按客户名升序。",
+    "tables": ["customers", "orders"],
+    "sql": "SELECT c.customer_name FROM customers c WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id AND o.status = 'completed' AND o.order_date >= DATE '2026-10-01' AND o.order_date < DATE '2026-11-01') ORDER BY c.customer_name",
+    "expected_rows": [["Beacon Market"], ["Cedar Goods"]]
+  },
+  {
+    "id": "latest-damaged-mouse-refund",
+    "question": "退款原因是 damaged_mouse 的最新退款日期是哪天？只返回 YYYY-MM-DD 日期。",
+    "tables": ["refunds"],
+    "sql": "SELECT MAX(refund_date) AS latest_refund FROM refunds WHERE reason = 'damaged_mouse'",
+    "expected_rows": [["2026-11-10"]]
+  },
+  {
+    "id": "fulfilled-units-by-warehouse",
+    "question": "各仓库的已完成订单合计发货多少件商品？按发货件数降序，返回仓库名和发货件数。",
+    "tables": ["warehouses", "orders", "order_items"],
+    "sql": "SELECT w.warehouse_name, SUM(i.quantity) AS shipped_units FROM warehouses w JOIN orders o USING (warehouse_id) JOIN order_items i USING (order_id) WHERE o.status = 'completed' GROUP BY w.warehouse_name ORDER BY shipped_units DESC",
+    "expected_rows": [["West Hub", 14], ["South Hub", 11], ["North Hub", 9]]
+  }
+]

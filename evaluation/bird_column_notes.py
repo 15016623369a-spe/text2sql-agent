@@ -116,8 +116,8 @@ def _load_metadata(db_path: Path):
 
 
 class AutoBirdColumnNotes(AutoColumnNotes):
-    def __init__(self, db_path: Path):
-        super().__init__(db_path, _load_metadata(db_path))
+    def __init__(self, db_path: Path, *, value_hints: bool = False):
+        super().__init__(db_path, _load_metadata(db_path), value_hints=value_hints)
 
 
 class BirdColumnNotes:

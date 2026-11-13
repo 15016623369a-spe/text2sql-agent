@@ -1,0 +1,112 @@
+name: Application CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt -r requirements-step7.txt -r requirements-step8.txt
+      - run: python -m unittest discover -s tests -v
+
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the file worker
+        run: docker build -t rag-step7-parser-tests sandbox/step7
+      - name: Test workbook parsing in the file worker
+        run: docker run --rm -i --network none --entrypoint python rag-step7-parser-tests - < tests/test_file_tabular.py
+      - name: Test formula verification in the file worker
+        run: docker run --rm -i --network none --entrypoint python rag-step7-parser-tests - < tests/test_file_formula_worker.py
+
+  followup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt -r requirements-step8.txt
+      - run: bash .github/scripts/run_checks.sh followup
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt -r requirements-step7.txt -r requirements-step8.txt playwright==1.65.0
+      - run: python -m playwright install --with-deps chromium
+      - run: docker build -t rag-step7-sandbox:1 sandbox/step7
+      - run: bash .github/scripts/run_checks.sh browser
+
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt -r requirements-step8.txt
+      - name: Check the PostgreSQL product path against the demo database
+        run: |
+          export RAG_POSTGRES_ADMIN_PASSWORD="$(openssl rand -hex 24)"
+          export RAG_POSTGRES_PASSWORD="$(openssl rand -hex 24)"
+          override="$RUNNER_TEMP/postgres-test.yaml"
+          cat > "$override" <<'YAML'
+          services:
+            postgres:
+              ports: ["127.0.0.1::5432"]
+          networks:
+            postgres_demo:
+              internal: false
+          YAML
+          dc=(docker compose -p rag-postgres-ci -f compose.yaml -f compose.postgres.yaml -f "$override")
+          trap '"${dc[@]}" down --volumes' EXIT
+          "${dc[@]}" up -d postgres postgres-init
+          "${dc[@]}" wait postgres-init
+          binding=$("${dc[@]}" port postgres 5432)
+          export RAG_POSTGRES_HOST=127.0.0.1 RAG_POSTGRES_PORT="${binding##*:}"
+          export RAG_POSTGRES_DATABASE=rag_demo RAG_POSTGRES_USER=rag_reader RAG_POSTGRES_SCHEMA=retail RAG_POSTGRES_SSLMODE=disable
+          python -m evaluation.run_postgres_demo --replay
+
+  checks:
+    name: Week 1 required checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: ${{ always() }}
+    needs: [unit, worker, followup, e2e, postgres]
+    steps:
+      - name: Require all five CI jobs to pass
+        env:
+          CI_RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          printf '%s\n' "$CI_RESULTS"
+          test "$CI_RESULTS" = 'success success success success success'

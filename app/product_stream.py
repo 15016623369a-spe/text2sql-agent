@@ -5,6 +5,7 @@ import asyncio
 import json
 import logging
 from collections.abc import Callable
+from contextlib import AbstractContextManager, ExitStack
 from threading import BoundedSemaphore, Lock
 
 from fastapi import HTTPException
@@ -12,6 +13,7 @@ from fastapi.responses import StreamingResponse
 from langsmith import tracing_context
 
 from app.file_sandbox import SandboxError
+from app.product_errors import public_error
 from app.telemetry import Trace, TraceStore, enqueue_export
 
 _slots = BoundedSemaphore(4)
@@ -26,6 +28,9 @@ class OperationError(ValueError):
 
 def stream_operation(
     store: TraceStore, operation: str, run: Callable[[], dict], *, owner: str = "",
+    on_result: Callable[[dict, str], None] | None = None,
+    on_outcome: Callable[[dict, dict], None] | None = None,
+    guard: Callable[[], AbstractContextManager[None]] | None = None,
 ) -> StreamingResponse:
     with _owner_lock:
         if owner and _owner_slots.get(owner, 0) >= 2:
@@ -55,18 +60,32 @@ def stream_operation(
 
     def work() -> None:
         status, error_type = "ok", None
+        outcome = event = None
+        scope = ExitStack()
         try:
+            if guard is not None:
+                scope.enter_context(guard())
             with trace.active(), tracing_context(enabled=False):
                 result = run()
             if result.get("kind") == "error":
                 status, error_type = "error", "WorkflowError"
+                if operation == "chat":
+                    result = {**result, **public_error(
+                        result.get("stop_reason"), result.get("message", "处理失败"), trace.id,
+                    )}
+            if on_result is not None:
+                on_result(result, trace.id)
             # Catch serialization errors in the worker before sending a result.
             _line(result)
-            emit({"event": "result", "data": result})
+            outcome = result
+            event = {"event": "result", "data": result}
         except Exception as exc:
             status, error_type = "error", type(exc).__name__
             message = str(exc) if isinstance(exc, (OperationError, SandboxError)) else "处理失败，请凭追踪编号查看服务状态"
-            emit({"event": "error", "message": message})
+            outcome = {"kind": "error", "message": message}
+            if operation == "chat":
+                outcome = public_error("timeout" if isinstance(exc, TimeoutError) else "workflow_error", message, trace.id)
+            event = {"event": "error", **{key: value for key, value in outcome.items() if key != "kind"}}
         finally:
             try:
                 report = trace.finish(status, error_type)
@@ -75,11 +94,24 @@ def stream_operation(
                 except Exception as exc:
                     _logger.error("Local trace persistence failed (%s)", type(exc).__name__)
                     report["stored"] = False
-                emit({"event": "done", **{key: value for key, value in report.items() if key != "spans"}})
+                summary = {key: value for key, value in report.items() if key != "spans"}
+                if on_outcome is not None and outcome is not None:
+                    summary["history_stored"] = True
+                    try:
+                        on_outcome(outcome, summary)
+                    except Exception as exc:
+                        _logger.error("Local conversation history persistence failed (%s)", type(exc).__name__)
+                        summary["history_stored"] = False
+                if event is not None:
+                    emit(event)
+                emit({"event": "done", **summary})
                 emit(None)
                 enqueue_export(report)
             finally:
-                release()
+                try:
+                    scope.close()
+                finally:
+                    release()
 
     try:
         # A disconnect closes the stream, while the bounded worker finishes and records its trace.

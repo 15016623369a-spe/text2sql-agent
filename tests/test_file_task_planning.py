@@ -138,6 +138,53 @@ class FileTaskPlanningTests(unittest.TestCase):
         self.assertEqual(check.basis, "explicit")
         model.assert_not_called()
 
+    def test_density_audit_uses_area_header_units_or_requests_a_formula(self):
+        question = "验证人口密度列的计算公式，列出偏差最大的记录"
+        columns = ["城市", "人口(万人)", "面积(平方公里)", "人口密度(人/平方公里)"]
+        sheet = SheetSchema(index=0, name="密度", columns=columns, numeric_columns=[1, 2, 3])
+        schema = FileSchema(sheets=[sheet])
+        for text in (question, "逐行核对人口密度", "人口密度公式是否正确？", "核对人口密度列"):
+            with self.subTest(text=text), patch(
+                "app.file_analysis._dispatch", side_effect=[schema, TaskResult(message="已核对")],
+            ) as worker, patch("app.file_planner.chat_completion") as model:
+                result = analyze_upload("density.xlsx", b"raw", text, SETTINGS)
+                self.assertEqual(result.kind, "file")
+                check = worker.call_args.args[0].plan.checks[0]
+                self.assertEqual(check.basis, "inferred")
+                self.assertEqual(check.unit, "人/平方公里")
+                self.assertEqual(check.formula.right.value, 10000)
+                self.assertEqual([item.unit for item in check.input_units], ["万人", "平方公里"])
+                model.assert_not_called()
+        ambiguous = FileSchema(sheets=[sheet.model_copy(update={"columns": [*columns, "行政区划面积(平方千米)"]})])
+        with patch("app.file_analysis._dispatch", return_value=ambiguous) as worker, patch(
+            "app.file_planner.chat_completion",
+        ) as model:
+            result = analyze_upload("density.xlsx", b"raw", question, SETTINGS)
+        self.assertEqual(result.kind, "clarification")
+        self.assertIn("目标列 = 输入列", result.narrative)
+        worker.assert_called_once()
+        model.assert_not_called()
+
+    def test_audit_canonicalizes_area_units_and_accepts_explicit_tolerance(self):
+        question = (
+            "核对公式：人口密度 = 人口 × 10000 ÷ 面积，单位：面积=平方千米、人口密度=人/km²，"
+            "列出偏差最大的记录，容差=0.015"
+        )
+        columns = ["人口(万人)", "面积(km²)", "人口密度(人/平方公里)"]
+        schema = FileSchema(sheets=[SheetSchema(index=0, name="密度", columns=columns, numeric_columns=[0, 1, 2])])
+        with patch("app.file_analysis._dispatch", side_effect=[schema, TaskResult(message="已核对")]) as worker:
+            self.assertEqual(analyze_upload("density.xlsx", b"raw", question).kind, "file")
+        plan = worker.call_args.args[0].plan
+        self.assertEqual(plan.tolerance, 0.015)
+        self.assertEqual(plan.checks[0].basis, "explicit")
+        self.assertEqual(plan.checks[0].input_units[1].unit, "平方公里")
+        self.assertEqual(plan.checks[0].unit, "人/平方公里")
+        with patch("app.file_analysis._dispatch", return_value=schema) as worker:
+            result = analyze_upload("density.xlsx", b"raw", question.replace("0.015", "-0.015"))
+        self.assertEqual(result.kind, "clarification")
+        self.assertIn("非负数", result.narrative)
+        worker.assert_called_once()
+
     def test_multiple_workbooks_require_sheet_selection_before_planning(self):
         sheets = [SCHEMA.sheets[0], SCHEMA.sheets[0].model_copy(update={"index": 0, "name": "第二张数据表"})]
         schema = FileSchema(sheets=sheets)
@@ -147,6 +194,42 @@ class FileTaskPlanningTests(unittest.TestCase):
             result = analyze_upload("table.xlsx", b"raw", QUESTION, SETTINGS)
         self.assertEqual(result.kind, "clarification")
         self.assertIn("选择要分析的工作表", result.narrative)
+        worker.assert_called_once()
+        model.assert_not_called()
+
+    def test_unsafe_header_layout_is_stopped_before_model_or_worker_execution(self):
+        sheet = SCHEMA.sheets[0].model_copy(update={
+            "issue": "检测到第 2 行仍是列名，请增加表头行数。",
+        })
+        with patch("app.file_analysis._dispatch", return_value=FileSchema(sheets=[sheet])) as worker, patch(
+            "app.file_planner.chat_completion",
+        ) as model:
+            result = analyze_upload("table.xlsx", b"raw", QUESTION, SETTINGS,
+                                    layout=FileLayout(sheet=1, header_row=1, header_depth=1))
+        self.assertEqual(result.kind, "clarification")
+        self.assertIn("第 2 行仍是列名", result.narrative)
+        self.assertIsNone(result.report)
+        worker.assert_called_once()
+        model.assert_not_called()
+
+    def test_short_sheet_name_is_only_selected_when_named_as_a_sheet(self):
+        other = SCHEMA.sheets[0].model_copy(update={"index": 0, "name": "支出"})
+        income = SCHEMA.sheets[0].model_copy(update={"index": 1, "name": "收入"})
+        schema = FileSchema(sheets=[other, income])
+        decision = provider({"kind": "run", "sheet": 1, "plan": {
+            "mode": "aggregate", "statistic": "sum", "columns": [2], "groups": [[0]],
+        }})
+        with patch("app.file_analysis._dispatch", side_effect=[schema, TaskResult(message="已汇总")]) as worker, patch(
+            "app.file_planner.chat_completion", return_value=(200, decision),
+        ):
+            result = analyze_upload("table.xlsx", b"raw", "在收入表里按年份汇总收入", SETTINGS)
+        self.assertEqual(result.kind, "file")
+        self.assertEqual(worker.call_args.args[0].sheet, 1)
+        with patch("app.file_analysis._dispatch", return_value=schema) as worker, patch(
+            "app.file_planner.chat_completion",
+        ) as model:
+            result = analyze_upload("table.xlsx", b"raw", "按年份汇总收入", SETTINGS)
+        self.assertEqual(result.kind, "clarification")
         worker.assert_called_once()
         model.assert_not_called()
 

@@ -7,7 +7,8 @@ MAX_RECOVERIES = 3
 SqlText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 Phase = Literal["dry_run", "execute"]
 FailureKind = Literal[
-    "missing_table", "missing_column", "sql_repair", "policy_blocked", "timeout", "execution_error",
+    "missing_table", "missing_column", "sql_repair", "policy_blocked", "demo_scope", "postgres_scope",
+    "timeout", "execution_error", "database_unavailable",
 ]
 
 

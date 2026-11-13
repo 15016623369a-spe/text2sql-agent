@@ -27,7 +27,7 @@ class _State(TypedDict, total=False):
     data: bytes
     question: str
     plan: AnalysisRequest
-    result: AnalysisResult
+    result: AnalysisResult | TaskResult
     narrative: str
 
 
@@ -79,14 +79,17 @@ def _dispatch(request: WorkerRequest, data: bytes) -> WorkerResult:
 def _analyze(state: _State) -> _State:
     with span("sandbox_analysis"):
         result = _dispatch(state["plan"], state["data"])
-    if not isinstance(result, AnalysisResult):
+    if not isinstance(result, AnalysisResult) and not (isinstance(result, TaskResult) and result.status == "clarification"):
         raise ValueError("分析容器返回了意外的结果")
     return {"result": result}
 
 
 def _narrate(state: _State) -> _State:
     report = state["result"]
-    lines = [f"分析了 {report.rows:,} 行、{report.columns} 列，其中 {len(report.numeric)} 列可做数值统计。"]
+    if isinstance(report, TaskResult):
+        return {"narrative": report.message}
+    lines = [f"表头从第 {report.header_row} 行起，共 {report.header_depth} 行。",
+             f"分析了 {report.rows:,} 行、{report.columns} 列，其中 {len(report.numeric)} 列可做数值统计。"]
     if report.dropped_blank_rows:
         lines.append(f"排除了 {report.dropped_blank_rows:,} 个全空数据行。")
     if report.duplicate_rows:
@@ -141,12 +144,15 @@ def _resolve_sheet(schema: FileSchema, layout: FileLayout, question: str):
     if (schema.sheet_count or len(schema.sheets)) == 1 and not schema.extra_sheets:
         return schema.sheets[0]
     text = normalize(question)
-    named = [
-        sheet for sheet in schema.sheets if normalize(sheet.name) and (
-            re.search(rf'["“「]{re.escape(normalize(sheet.name))}["”」]', text)
-            or (len(normalize(sheet.name)) >= 3 and normalize(sheet.name) in text)
-        )
-    ]
+    named = []
+    for sheet in schema.sheets:
+        name = normalize(sheet.name)
+        escaped = re.escape(name)
+        if name and (re.search(rf'["“「]{escaped}["”」]', text)
+                     or re.search(rf"(?:在|从|使用|选择|工作表){escaped}(?:工作表|表(?:里|内|中)?|里|内|中|$)", text)):
+            named.append(sheet)
+    if not named:
+        named = [sheet for sheet in schema.sheets if len(normalize(sheet.name)) >= 3 and normalize(sheet.name) in text]
     return named[0] if len(named) == 1 else None
 
 
@@ -186,7 +192,7 @@ def _analyze_planned(file_format: FileFormat, data: bytes, question: str, settin
     if isinstance(request.plan, ProfilePlan) and isinstance(result, AnalysisResult):
         profile = AnalysisRequest(format=file_format, action=request.plan.mode, chart=request.plan.chart)
         text = _narrate({"plan": profile, "result": result})["narrative"]
-        return FileAnalysis(result, f"分析工作表「{sheet.name}」，表头从第 {sheet.header_row} 行起。\n{text}")
+        return FileAnalysis(result, f"分析工作表「{sheet.name}」。\n{text}")
     raise ValueError("分析容器返回了意外的结果")
 
 
@@ -208,8 +214,12 @@ def analyze_upload(filename: str, data: bytes, question: str, settings: Settings
             sheet = _resolve_sheet(schema, layout, question)
             if sheet is None:
                 return FileAnalysis(None, "文件含多个工作表。请先在预览中选择要分析的工作表。", "clarification")
+            if sheet.issue:
+                return FileAnalysis(None, sheet.issue, "clarification")
             layout = FileLayout(sheet=sheet.index, header_row=sheet.header_row, header_depth=sheet.header_depth)
             if planned:
                 return _analyze_planned(file_format, data, question, settings, FileSchema(sheets=[sheet]))
         state = _graph.invoke({"filename": filename, "data": data, "question": question, "layout": layout})
+    if isinstance(state["result"], TaskResult):
+        return FileAnalysis(None, state["narrative"], "clarification")
     return FileAnalysis(report=state["result"], narrative=state["narrative"])

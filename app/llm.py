@@ -6,7 +6,7 @@ import urllib.parse
 import urllib.request
 
 from app.config import Settings
-from app.telemetry import span
+from app.telemetry import price_model_call, span
 
 _MAX_RESPONSE_BYTES = 1024 * 1024
 
@@ -52,6 +52,7 @@ def chat_completion(
             raise ValueError("Expected a JSON object from Chat Completions")
         if measurement is not None:
             measurement["usage"] = body.get("usage")
+            price_model_call(measurement, settings.llm_base_url, settings.llm_model)
     return status, body
 
 

@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from app.config import Settings
 from app.llm import chat_completion
 from app.sql_recovery import MAX_RECOVERIES, run_recovery
+from app.telemetry import span
 from app.text2sql import build_messages, schema_objects
 from app.tools.db import ReadOnlyDB
 
@@ -128,22 +129,34 @@ def _month_bounds(period: Period) -> tuple[str, str]:
     return current.isoformat(), following.isoformat()
 
 
-def query_revenue(database: Path, context: QueryContext, settings: Settings | None) -> dict:
+def demo_filters(context: QueryContext, excluded_regions: tuple[Region, ...] = ()) -> list[str]:
+    filters = []
+    if context.period:
+        start, end = _month_bounds(context.period)
+        filters.extend((f"ordered_on >= '{start}'", f"ordered_on < '{end}'"))
+    if context.region:
+        filters.append(f"region = '{context.region}'")
+    for region in excluded_regions:
+        validated = QueryContext(region=region).region
+        filters.append(f"region <> '{validated}'")
+    return filters
+
+
+def query_revenue(
+    database: Path, context: QueryContext, settings: Settings | None, *, excluded_regions: tuple[Region, ...] = (),
+) -> dict:
     if context.metric is None or context.period is None:
         raise ValueError("查询前需要确认月份和营收口径")
     start, end = _month_bounds(context.period)
     expression = "amount_cents - refund_cents" if context.metric == "net" else "amount_cents"
-    region_filter = f" AND region = '{context.region}'" if context.region else ""
-    sql = (
-        f"SELECT COALESCE(SUM({expression}), 0) AS revenue_cents FROM orders "
-        f"WHERE ordered_on >= '{start}' AND ordered_on < '{end}'{region_filter}"
-    )
+    conditions = " AND ".join(demo_filters(context, excluded_regions))
+    sql = f"SELECT COALESCE(SUM({expression}), 0) AS revenue_cents FROM orders WHERE {conditions}"
     with ReadOnlyDB(database) as db:
         schema = schema_objects(db)["orders"]
     messages = build_messages(
         schema,
-        f"Return one integer in cents: sum {expression} for all orders with ordered_on >= '{start}' "
-        f"and ordered_on < '{end}'{region_filter}. Return zero if no orders match.",
+        f"Return one integer in cents: sum {expression} for all orders with {conditions}. "
+        "Return zero if no orders match.",
         "Use the region and date predicates exactly as given.",
     )
 
@@ -172,7 +185,60 @@ def query_revenue(database: Path, context: QueryContext, settings: Settings | No
     cents = rows[0][0]
     return {
         "kind": "answer", "context": context.model_dump(), "date_start": start, "date_end_exclusive": end,
-        "revenue_cents": cents, "revenue_cny": f"{Decimal(cents) / 100:.2f}",
+        "revenue_cents": cents, "revenue_cny": f"{Decimal(cents) / 100:.2f}", "total_rows": 1,
         "sql": result["sql"], "model": settings.llm_model if settings is not None else "local_template",
-        "retries": result["recovery_attempts"], "usage": result["usage"],
+        "retries": result["recovery_attempts"], "usage": result["usage"], "unit": "元",
+        "demo_plan": {"intent": "revenue", "excluded_regions": list(excluded_regions)},
+    }
+
+
+def query_demo_aggregate(
+    database: Path, intent: str, context: QueryContext, *, excluded_regions: tuple[Region, ...] = (),
+) -> dict:
+    """Execute a fixed aggregate for recognized demo questions and confirmed slots."""
+    if intent == "regional_revenue" and (context.period is None or context.metric is None):
+        raise ValueError("查询前需要确认月份和营收口径")
+    expressions = {
+        "refund_total": ("COALESCE(SUM(refund_cents), 0) / 100.0", "退款总额（元）"),
+        "average_amount": ("ROUND(AVG(amount_cents) / 100.0, 2)", "平均订单金额（元）"),
+    }
+    groups = []
+    group_columns = []
+    if intent in {"monthly_order_count", "monthly_regional_order_count"}:
+        groups.append("substr(ordered_on, 1, 7)")
+        group_columns.append(f"{groups[-1]} AS 月份")
+    if intent in {"regional_order_count", "monthly_regional_order_count", "regional_revenue"}:
+        groups.append("region")
+        group_columns.append("region AS 地区")
+    if intent == "regional_revenue":
+        metric = "amount_cents - refund_cents" if context.metric == "net" else "amount_cents"
+        label = "净营收（元）" if context.metric == "net" else "毛营收（元）"
+        expression = f"COALESCE(SUM({metric}), 0) / 100.0"
+    elif intent in {"order_count", "regional_order_count", "monthly_order_count", "monthly_regional_order_count"}:
+        expression, label = "COUNT(*)", "订单笔数"
+    else:
+        expression, label = expressions[intent]
+    columns = ", ".join([*group_columns, f'{expression} AS "{label}"'])
+    sql = f"SELECT {columns} FROM orders"
+    filters = demo_filters(context, excluded_regions)
+    if filters:
+        sql += " WHERE " + " AND ".join(filters)
+    if groups:
+        sql += " GROUP BY " + ", ".join(groups) + " ORDER BY " + ", ".join(groups)
+    with span("sql_dry_run"), ReadOnlyDB(database) as db:
+        db.dry_run(sql)
+    with span("sql_execute"), ReadOnlyDB(database) as db:
+        columns, rows = db.query(sql, limit=50)
+    monetary = "（元）" in label
+    message = f"查询成功，返回 {len(rows)} 行预览。"
+    if not groups and rows:
+        value = rows[0][0]
+        formatted = "暂无数据" if value is None else f"{value:.2f}" if monetary else str(value)
+        message = f"{label}：{formatted}"
+    return {
+        "kind": "query", "message": message, "sql": sql, "columns": columns, "rows": rows,
+        "truncated": False, "total_rows": len(rows), "tables": ["orders"], "retries": 0, "context": context.model_dump(),
+        "query_scope": {"all_time": context.period is None, "all_regions": context.region is None and not excluded_regions},
+        "unit": "元" if monetary else "笔",
+        "demo_plan": {"intent": intent, "excluded_regions": list(excluded_regions)},
     }

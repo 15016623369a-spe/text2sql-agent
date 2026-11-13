@@ -5,6 +5,8 @@ from fastapi import HTTPException, Request
 from starlette.requests import ClientDisconnect
 from starlette.responses import JSONResponse
 
+from app.product_errors import chat_http_error, is_chat_request
+
 _JSON_PATHS = {"/api/v1/chat", "/api/v1/approvals", "/api/v1/query"}
 
 
@@ -39,10 +41,15 @@ class BoundedJSON:
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http" or scope["method"] != "POST" or scope["path"] not in _JSON_PATHS:
             return await self.app(scope, receive, send)
+        request = Request(scope, receive)
         try:
-            data = await bounded_body(Request(scope, receive), 16 * 1024, size_error="JSON 请求超过 16 KiB")
+            data = await bounded_body(request, 16 * 1024, size_error="JSON 请求超过 16 KiB")
         except HTTPException as exc:
-            return await JSONResponse({"detail": exc.detail}, status_code=exc.status_code)(scope, receive, send)
+            if is_chat_request(request):
+                response = await chat_http_error(request, exc.status_code, exc.detail)
+            else:
+                response = JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+            return await response(scope, receive, send)
 
         sent = False
 

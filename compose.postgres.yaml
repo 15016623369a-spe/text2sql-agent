@@ -1,0 +1,64 @@
+services:
+  api:
+    environment:
+      RAG_POSTGRES_HOST: postgres
+      RAG_POSTGRES_PORT: "5432"
+      RAG_POSTGRES_DATABASE: rag_demo
+      RAG_POSTGRES_USER: rag_reader
+      RAG_POSTGRES_PASSWORD: ${RAG_POSTGRES_PASSWORD:?Set a password for the demo reader}
+      RAG_POSTGRES_SCHEMA: retail
+      RAG_POSTGRES_SSLMODE: disable
+    networks:
+      - default
+      - postgres_demo
+    depends_on:
+      postgres-init:
+        condition: service_completed_successfully
+
+  postgres:
+    image: &postgres_demo_image postgres:17.11-alpine@sha256:e5d2edd28b1f8d40a0a6c0c9cdc545b19b56a0d5d88f94bc11a97d970d4700d0
+    environment:
+      POSTGRES_DB: rag_demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${RAG_POSTGRES_ADMIN_PASSWORD:?Set a separate demo database administrator password}
+    networks:
+      - postgres_demo
+    volumes:
+      - postgres_demo_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "rag_demo"]
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  postgres-init:
+    image: *postgres_demo_image
+    entrypoint: ["/bin/sh", "-eu", "-c"]
+    command:
+      - |
+        if [ "$${RAG_POSTGRES_PASSWORD}" = "$${PGPASSWORD}" ]; then
+          printf '%s\n' 'Use different passwords for the database administrator and reader.' >&2
+          exit 1
+        fi
+        exec psql --no-psqlrc --no-password --set ON_ERROR_STOP=1 --file /demo/seed.sql
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: rag_demo
+      PGUSER: postgres
+      PGPASSWORD: ${RAG_POSTGRES_ADMIN_PASSWORD:?Set a separate demo database administrator password}
+      RAG_POSTGRES_PASSWORD: ${RAG_POSTGRES_PASSWORD:?Set a password for the demo reader}
+    networks:
+      - postgres_demo
+    volumes:
+      - ./data/postgres_demo/seed.sql:/demo/seed.sql:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  postgres_demo:
+    internal: true
+
+volumes:
+  postgres_demo_data:

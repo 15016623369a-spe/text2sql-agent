@@ -1,0 +1,120 @@
+name: Nightly live model regression
+
+on:
+  schedule:
+    - cron: '17 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: nightly-live-model
+  cancel-in-progress: false
+
+jobs:
+  regressions:
+    if: ${{ github.event_name == 'schedule' || (github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      LLM_PROVIDER: deepseek
+      LLM_BASE_URL: https://api.deepseek.com
+      LLM_MODEL: deepseek-v4-pro
+      LLM_TEMPERATURE: '0'
+      LANGSMITH_TRACING: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: '3.11'
+      - name: Verify nightly credential is configured
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          if [ -z "$LLM_API_KEY" ]; then
+            echo '::error::Set the LLM_API_KEY repository secret to enable the nightly model regression.'
+            exit 1
+          fi
+      - run: python -m pip install -r requirements.txt -r requirements-step8.txt
+      - name: Download up to five previous successful reports
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.ref_name }}
+        run: |
+          if ! recent=$(gh run list --workflow nightly.yml --branch "$DEFAULT_BRANCH" --status success --limit 5 \
+              --json databaseId,createdAt --jq 'sort_by(.createdAt) | reverse | .[].databaseId'); then
+            echo '::warning::The list of previous successful nightlies is unavailable.'
+            exit 0
+          fi
+          index=0
+          while IFS= read -r previous; do
+            [ -n "$previous" ] || continue
+            index=$((index + 1))
+            gh run download "$previous" --name nightly-regression --dir "$RUNNER_TEMP/previous-nightly/$index" || \
+              echo "::warning::The nightly artifact for run $previous is unavailable."
+          done <<< "$recent"
+      - name: Run 30 multi-turn scenarios with the real model
+        id: dialogue
+        continue-on-error: true
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: bash .github/scripts/run_checks.sh nightly --output "$RUNNER_TEMP/nightly-artifact/conversations.json"
+      - name: Prepare the frozen public BIRD snapshot
+        id: bird_data
+        continue-on-error: true
+        run: bash .github/scripts/prepare_bird.sh
+      - name: Run three repetitions of the fixed 50-question BIRD dev set
+        id: bird
+        if: ${{ steps.bird_data.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          status=0
+          for repetition in 1 2 3; do
+            echo "BIRD dev repetition $repetition/3"
+            python -m evaluation.run_product --split dev --workers 3 \
+              --output-dir "$RUNNER_TEMP/bird-raw/$repetition" || status=1
+          done
+          exit "$status"
+      - name: Publish regression summary and diffs
+        id: summary
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          set +e
+          previous_args=()
+          for index in 1 2 3 4 5; do
+            previous="$RUNNER_TEMP/previous-nightly/$index/bird.json"
+            if [ -f "$previous" ]; then
+              previous_args+=(--previous "$previous")
+            fi
+          done
+          python .github/scripts/nightly_report.py --bird-dir "$RUNNER_TEMP/bird-raw/1" \
+            --bird-dir "$RUNNER_TEMP/bird-raw/2" --bird-dir "$RUNNER_TEMP/bird-raw/3" \
+            "${previous_args[@]}" --baseline evaluation/baselines/product_dev.json \
+            --output-dir "$RUNNER_TEMP/nightly-artifact"
+          status=$?
+          if [ -f "$RUNNER_TEMP/nightly-artifact/summary.md" ]; then
+            cat "$RUNNER_TEMP/nightly-artifact/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$status"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        if: ${{ always() }}
+        with:
+          name: nightly-regression
+          path: ${{ runner.temp }}/nightly-artifact/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Fail when a real-model check fails
+        if: ${{ always() }}
+        env:
+          DIALOGUE: ${{ steps.dialogue.outcome }}
+          BIRD_DATA: ${{ steps.bird_data.outcome }}
+          BIRD: ${{ steps.bird.outcome }}
+          SUMMARY: ${{ steps.summary.outcome }}
+        run: test "$DIALOGUE $BIRD_DATA $BIRD $SUMMARY" = 'success success success success'

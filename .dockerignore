@@ -3,6 +3,9 @@
 !requirements.txt
 !requirements-step7.txt
 !requirements-step8.txt
+!.streamlit/
+.streamlit/*
+!.streamlit/config.toml
 !app/
 app/**
 !app/*.py

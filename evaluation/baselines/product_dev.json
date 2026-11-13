@@ -1,0 +1,3410 @@
+{
+  "format_version": 2,
+  "valid": true,
+  "run": {
+    "version": "product",
+    "split": "dev",
+    "dataset_sha256": "926af2a0d1b47e5d0d15a7aa8a34d4721007f4550a881555b6a89496b54a2606",
+    "split_sha256": "6cea4e7a557ac262c9897d2804ed3f7c5261e36bf43e2fecdebc1d8a80bc2901",
+    "question_ids": [
+      0,
+      9,
+      15,
+      16,
+      32,
+      57,
+      59,
+      67,
+      73,
+      74,
+      89,
+      107,
+      118,
+      130,
+      139,
+      146,
+      156,
+      164,
+      181,
+      187,
+      197,
+      203,
+      215,
+      221,
+      232,
+      240,
+      246,
+      250,
+      259,
+      269,
+      285,
+      310,
+      323,
+      325,
+      353,
+      363,
+      368,
+      370,
+      380,
+      400,
+      405,
+      414,
+      430,
+      431,
+      440,
+      446,
+      449,
+      472,
+      491,
+      494
+    ],
+    "model": "deepseek-v4-pro",
+    "provider": "deepseek",
+    "provider_host": "api.deepseek.com",
+    "temperature": 0.0,
+    "execution_metric": "BIRD EX set equality of typed SQLite rows",
+    "uses_official_evidence": true,
+    "sql_timeout_seconds": 5.0,
+    "model_timeout_seconds": 30,
+    "max_output_tokens": 1024,
+    "max_result_rows": 100000,
+    "observation_max_bytes": 33554432,
+    "workers": 3,
+    "full_split": true,
+    "path": "POST /api/v1/query: app.product_sql.query_database",
+    "prompt_version": "product-bird-storage-grain-1",
+    "system_prompt_sha256": "0ad40ed05687733ac44f8da5f3c1ebb818931f70a99bb209de0b5dad6efc9c99",
+    "source_sha256": {
+      "app/product_sql.py": "535e4845c1640df489c5ab583fc24af3a9cccc94e463c5d77c377265118039da",
+      "app/text2sql.py": "9dc211fc0220c2323dca7e79f6cb306e94dec3cfff5226ead6ff9837de2ef909",
+      "app/schema_linking.py": "72b2e902998bd3a411aa5cf9e6f6acbf623f0bbad9ff6d914d8ec757535e8160",
+      "app/schema_prompt.py": "bc6be4cb2600d5da494ec3fee65de06e77252a19b9b65935d2bfc73d9069310d",
+      "app/auto_column_notes.py": "3b3779f2f8e69408e9c2d0d87e78d32135abb5d8578d9e9a6d2efd91abf757c0",
+      "evaluation/bird_column_notes.py": "5f74bbdb81f18cbedd2840dd490ca32eb17f3fcca35ca09688874a9e60375099",
+      "app/sql_recovery.py": "6b9643c7d8c085f8db2eab8f33beaccd61e2feac7075bae14b63e3982e9d4dfd",
+      "app/recovery_models.py": "b6f6dcdc4ec75e07e3b0f0c3ca0566ccfc3debd4c1feabd884524e124b26f80b",
+      "app/tools/db.py": "10f812f0b5c4bb3dccd780e2ad8840efda3e9c7c5746314746f1600453cb0004",
+      "app/llm.py": "d2244863db41cee7571c3944fa9037fe439f8d983fa4ce38cd9ee35f61a4c561",
+      "app/query_export.py": "216347871e3ba7da18b48ff4cd22781c5e429a6c9cbcabc083c68f3ece8d317f",
+      "app/sql_semantics.py": "6344ce5e54542879965e7eb15b363ba5f868e8c48e603396bf5c987e224173cb",
+      "evaluation/run_product.py": "82ed51f596dd5416b2866f46294b2cc9da8e9136df654adb91d7be21743f5566"
+    },
+    "sqlite_version": "3.54.1",
+    "profile": "full",
+    "features": {
+      "value_hints": true,
+      "prompt_guidance": true,
+      "semantic_checks": true
+    },
+    "schema_linking": {
+      "version": "bm25-evidence-fk-1",
+      "top_k": 4,
+      "dense": null
+    }
+  },
+  "summary": {
+    "repetitions": 3,
+    "questions_per_run": 50,
+    "correct_counts": [
+      27,
+      26,
+      27
+    ],
+    "correct_median": 27,
+    "correct_range": [
+      26,
+      27
+    ],
+    "p95_latency_seconds_runs": [
+      9.00078,
+      6.76199,
+      9.37052
+    ],
+    "p95_latency_seconds_median": 9.00078,
+    "p95_latency_seconds_range": [
+      6.76199,
+      9.37052
+    ]
+  },
+  "runs": [
+    {
+      "run": {
+        "version": "product",
+        "split": "dev",
+        "dataset_sha256": "926af2a0d1b47e5d0d15a7aa8a34d4721007f4550a881555b6a89496b54a2606",
+        "split_sha256": "6cea4e7a557ac262c9897d2804ed3f7c5261e36bf43e2fecdebc1d8a80bc2901",
+        "question_ids": [
+          0,
+          9,
+          15,
+          16,
+          32,
+          57,
+          59,
+          67,
+          73,
+          74,
+          89,
+          107,
+          118,
+          130,
+          139,
+          146,
+          156,
+          164,
+          181,
+          187,
+          197,
+          203,
+          215,
+          221,
+          232,
+          240,
+          246,
+          250,
+          259,
+          269,
+          285,
+          310,
+          323,
+          325,
+          353,
+          363,
+          368,
+          370,
+          380,
+          400,
+          405,
+          414,
+          430,
+          431,
+          440,
+          446,
+          449,
+          472,
+          491,
+          494
+        ],
+        "model": "deepseek-v4-pro",
+        "provider": "deepseek",
+        "provider_host": "api.deepseek.com",
+        "temperature": 0.0,
+        "execution_metric": "BIRD EX set equality of typed SQLite rows",
+        "uses_official_evidence": true,
+        "sql_timeout_seconds": 5.0,
+        "model_timeout_seconds": 30,
+        "max_output_tokens": 1024,
+        "max_result_rows": 100000,
+        "observation_max_bytes": 33554432,
+        "workers": 3,
+        "full_split": true,
+        "path": "POST /api/v1/query: app.product_sql.query_database",
+        "prompt_version": "product-bird-storage-grain-1",
+        "system_prompt_sha256": "0ad40ed05687733ac44f8da5f3c1ebb818931f70a99bb209de0b5dad6efc9c99",
+        "source_sha256": {
+          "app/product_sql.py": "535e4845c1640df489c5ab583fc24af3a9cccc94e463c5d77c377265118039da",
+          "app/text2sql.py": "9dc211fc0220c2323dca7e79f6cb306e94dec3cfff5226ead6ff9837de2ef909",
+          "app/schema_linking.py": "72b2e902998bd3a411aa5cf9e6f6acbf623f0bbad9ff6d914d8ec757535e8160",
+          "app/schema_prompt.py": "bc6be4cb2600d5da494ec3fee65de06e77252a19b9b65935d2bfc73d9069310d",
+          "app/auto_column_notes.py": "3b3779f2f8e69408e9c2d0d87e78d32135abb5d8578d9e9a6d2efd91abf757c0",
+          "evaluation/bird_column_notes.py": "5f74bbdb81f18cbedd2840dd490ca32eb17f3fcca35ca09688874a9e60375099",
+          "app/sql_recovery.py": "6b9643c7d8c085f8db2eab8f33beaccd61e2feac7075bae14b63e3982e9d4dfd",
+          "app/recovery_models.py": "b6f6dcdc4ec75e07e3b0f0c3ca0566ccfc3debd4c1feabd884524e124b26f80b",
+          "app/tools/db.py": "10f812f0b5c4bb3dccd780e2ad8840efda3e9c7c5746314746f1600453cb0004",
+          "app/llm.py": "d2244863db41cee7571c3944fa9037fe439f8d983fa4ce38cd9ee35f61a4c561",
+          "app/query_export.py": "216347871e3ba7da18b48ff4cd22781c5e429a6c9cbcabc083c68f3ece8d317f",
+          "app/sql_semantics.py": "6344ce5e54542879965e7eb15b363ba5f868e8c48e603396bf5c987e224173cb",
+          "evaluation/run_product.py": "82ed51f596dd5416b2866f46294b2cc9da8e9136df654adb91d7be21743f5566"
+        },
+        "sqlite_version": "3.54.1",
+        "run_id": "20261112T075847326216Z",
+        "profile": "full",
+        "features": {
+          "value_hints": true,
+          "prompt_guidance": true,
+          "semantic_checks": true
+        },
+        "schema_linking": {
+          "version": "bm25-evidence-fk-1",
+          "top_k": 4,
+          "dense": null
+        }
+      },
+      "summary": {
+        "questions": 50,
+        "correct": 27,
+        "answered": 50,
+        "executed": 50,
+        "wrong_answers": 23,
+        "execution_accuracy": 0.54,
+        "execution_success_rate": 1.0,
+        "wrong_answer_rate": 0.46,
+        "answer_rate": 1.0,
+        "accuracy_on_answered": 0.54,
+        "p50_latency_seconds": 2.28478,
+        "p95_latency_seconds": 9.00078,
+        "statuses": {
+          "mismatch": 23,
+          "correct": 27
+        },
+        "error_types": {
+          "mismatch": 23
+        },
+        "model_calls": 53,
+        "model_calls_with_usage": 53,
+        "benchmark_valid": true,
+        "token_totals": {
+          "prompt_tokens": 66491,
+          "completion_tokens": 9109,
+          "total_tokens": 75600,
+          "prompt_cache_hit_tokens": 62080,
+          "prompt_cache_miss_tokens": 4411
+        },
+        "semantic_checks": {
+          "pre_execution": 50,
+          "post_execution": 50
+        },
+        "by_database": {
+          "california_schools": {
+            "questions": 5,
+            "correct": 1,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 4,
+            "execution_accuracy": 0.2,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.8,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.2,
+            "p50_latency_seconds": 2.29055,
+            "p95_latency_seconds": 11.11798,
+            "statuses": {
+              "mismatch": 4,
+              "correct": 1
+            },
+            "error_types": {
+              "mismatch": 4
+            },
+            "model_calls": 6,
+            "model_calls_with_usage": 6,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 10022,
+              "completion_tokens": 1318,
+              "total_tokens": 11340,
+              "prompt_cache_hit_tokens": 9088,
+              "prompt_cache_miss_tokens": 934
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "card_games": {
+            "questions": 7,
+            "correct": 4,
+            "answered": 7,
+            "executed": 7,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.5714285714285714,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.42857142857142855,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5714285714285714,
+            "p50_latency_seconds": 1.85837,
+            "p95_latency_seconds": 5.80815,
+            "statuses": {
+              "mismatch": 3,
+              "correct": 4
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 8,
+            "model_calls_with_usage": 8,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 12027,
+              "completion_tokens": 882,
+              "total_tokens": 12909,
+              "prompt_cache_hit_tokens": 11392,
+              "prompt_cache_miss_tokens": 635
+            },
+            "semantic_checks": {
+              "pre_execution": 7,
+              "post_execution": 7
+            }
+          },
+          "codebase_community": {
+            "questions": 4,
+            "correct": 2,
+            "answered": 4,
+            "executed": 4,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.5,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.5,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5,
+            "p50_latency_seconds": 1.37168,
+            "p95_latency_seconds": 3.39936,
+            "statuses": {
+              "correct": 2,
+              "mismatch": 2
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 4,
+            "model_calls_with_usage": 4,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4189,
+              "completion_tokens": 366,
+              "total_tokens": 4555,
+              "prompt_cache_hit_tokens": 3968,
+              "prompt_cache_miss_tokens": 221
+            },
+            "semantic_checks": {
+              "pre_execution": 4,
+              "post_execution": 4
+            }
+          },
+          "debit_card_specializing": {
+            "questions": 1,
+            "correct": 0,
+            "answered": 1,
+            "executed": 1,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 1.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.0,
+            "p50_latency_seconds": 2.28478,
+            "p95_latency_seconds": 2.28478,
+            "statuses": {
+              "mismatch": 1
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 1,
+            "model_calls_with_usage": 1,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 688,
+              "completion_tokens": 95,
+              "total_tokens": 783,
+              "prompt_cache_hit_tokens": 640,
+              "prompt_cache_miss_tokens": 48
+            },
+            "semantic_checks": {
+              "pre_execution": 1,
+              "post_execution": 1
+            }
+          },
+          "european_football_2": {
+            "questions": 3,
+            "correct": 2,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.6666666666666666,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.3333333333333333,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.6666666666666666,
+            "p50_latency_seconds": 5.12899,
+            "p95_latency_seconds": 9.00078,
+            "statuses": {
+              "correct": 2,
+              "mismatch": 1
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 7003,
+              "completion_tokens": 1197,
+              "total_tokens": 8200,
+              "prompt_cache_hit_tokens": 6784,
+              "prompt_cache_miss_tokens": 219
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          },
+          "financial": {
+            "questions": 5,
+            "correct": 2,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.4,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.6,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.4,
+            "p50_latency_seconds": 4.02064,
+            "p95_latency_seconds": 6.76772,
+            "statuses": {
+              "mismatch": 3,
+              "correct": 2
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4938,
+              "completion_tokens": 1324,
+              "total_tokens": 6262,
+              "prompt_cache_hit_tokens": 4608,
+              "prompt_cache_miss_tokens": 330
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "formula_1": {
+            "questions": 6,
+            "correct": 5,
+            "answered": 6,
+            "executed": 6,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.8333333333333334,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.16666666666666666,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.8333333333333334,
+            "p50_latency_seconds": 2.11346,
+            "p95_latency_seconds": 3.21485,
+            "statuses": {
+              "correct": 5,
+              "mismatch": 1
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 6,
+            "model_calls_with_usage": 6,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 7801,
+              "completion_tokens": 755,
+              "total_tokens": 8556,
+              "prompt_cache_hit_tokens": 7552,
+              "prompt_cache_miss_tokens": 249
+            },
+            "semantic_checks": {
+              "pre_execution": 6,
+              "post_execution": 6
+            }
+          },
+          "student_club": {
+            "questions": 3,
+            "correct": 3,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 0,
+            "execution_accuracy": 1.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 1.0,
+            "p50_latency_seconds": 1.74894,
+            "p95_latency_seconds": 3.04297,
+            "statuses": {
+              "correct": 3
+            },
+            "error_types": {},
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 2620,
+              "completion_tokens": 308,
+              "total_tokens": 2928,
+              "prompt_cache_hit_tokens": 2432,
+              "prompt_cache_miss_tokens": 188
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          },
+          "superhero": {
+            "questions": 5,
+            "correct": 4,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.8,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.2,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.8,
+            "p50_latency_seconds": 2.26164,
+            "p95_latency_seconds": 2.91575,
+            "statuses": {
+              "mismatch": 1,
+              "correct": 4
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4169,
+              "completion_tokens": 503,
+              "total_tokens": 4672,
+              "prompt_cache_hit_tokens": 3840,
+              "prompt_cache_miss_tokens": 329
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "thrombosis_prediction": {
+            "questions": 8,
+            "correct": 4,
+            "answered": 8,
+            "executed": 8,
+            "wrong_answers": 4,
+            "execution_accuracy": 0.5,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.5,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5,
+            "p50_latency_seconds": 2.60618,
+            "p95_latency_seconds": 3.82689,
+            "statuses": {
+              "mismatch": 4,
+              "correct": 4
+            },
+            "error_types": {
+              "mismatch": 4
+            },
+            "model_calls": 8,
+            "model_calls_with_usage": 8,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 9345,
+              "completion_tokens": 1100,
+              "total_tokens": 10445,
+              "prompt_cache_hit_tokens": 8832,
+              "prompt_cache_miss_tokens": 513
+            },
+            "semantic_checks": {
+              "pre_execution": 8,
+              "post_execution": 8
+            }
+          },
+          "toxicology": {
+            "questions": 3,
+            "correct": 0,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 1.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.0,
+            "p50_latency_seconds": 2.06288,
+            "p95_latency_seconds": 11.35448,
+            "statuses": {
+              "mismatch": 3
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 4,
+            "model_calls_with_usage": 4,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 3689,
+              "completion_tokens": 1261,
+              "total_tokens": 4950,
+              "prompt_cache_hit_tokens": 2944,
+              "prompt_cache_miss_tokens": 745
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          }
+        },
+        "by_difficulty": {
+          "challenging": {
+            "questions": 47,
+            "correct": 26,
+            "answered": 47,
+            "executed": 47,
+            "wrong_answers": 21,
+            "execution_accuracy": 0.5531914893617021,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.44680851063829785,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5531914893617021,
+            "p50_latency_seconds": 2.29414,
+            "p95_latency_seconds": 9.00078,
+            "statuses": {
+              "mismatch": 21,
+              "correct": 26
+            },
+            "error_types": {
+              "mismatch": 21
+            },
+            "model_calls": 50,
+            "model_calls_with_usage": 50,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 62732,
+              "completion_tokens": 8912,
+              "total_tokens": 71644,
+              "prompt_cache_hit_tokens": 58496,
+              "prompt_cache_miss_tokens": 4236
+            },
+            "semantic_checks": {
+              "pre_execution": 47,
+              "post_execution": 47
+            }
+          },
+          "moderate": {
+            "questions": 3,
+            "correct": 1,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.3333333333333333,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.6666666666666666,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.3333333333333333,
+            "p50_latency_seconds": 1.34329,
+            "p95_latency_seconds": 2.29055,
+            "statuses": {
+              "mismatch": 2,
+              "correct": 1
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 3759,
+              "completion_tokens": 197,
+              "total_tokens": 3956,
+              "prompt_cache_hit_tokens": 3584,
+              "prompt_cache_miss_tokens": 175
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          }
+        }
+      },
+      "questions": [
+        {
+          "question_id": 0,
+          "db_id": "california_schools",
+          "difficulty": "moderate",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.29055,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 9,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.58155,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 15,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.02358,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 16,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.37748,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 32,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 11.11798,
+          "model_calls": 2,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 57,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.74417,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 59,
+          "db_id": "card_games",
+          "difficulty": "moderate",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.08065,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 67,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.99404,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 73,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 5.80815,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 74,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.84903,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 89,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.85837,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 107,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.96916,
+          "model_calls": 2,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 118,
+          "db_id": "codebase_community",
+          "difficulty": "moderate",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.34329,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 130,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.02544,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 139,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.37168,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 146,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.39936,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 156,
+          "db_id": "debit_card_specializing",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.28478,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 164,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.75696,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 181,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 5.12899,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 187,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 9.00078,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 197,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.60496,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 203,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 4.02064,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 215,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.39611,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 221,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 6.76772,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 232,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 4.34388,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 240,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.37486,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 246,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.0555,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 250,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.11346,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 259,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.87182,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 269,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.21485,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 285,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.25584,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 310,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.65414,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 323,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.74894,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 325,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.04297,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 353,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.26164,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 363,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.98386,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 368,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.91575,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 370,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.51797,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 380,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.29414,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 400,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.82689,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 405,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.00054,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 414,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.42356,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 430,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.60618,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 431,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.11933,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 440,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.47778,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 446,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.38387,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 449,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.18859,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 472,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.06288,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 491,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 11.35448,
+          "model_calls": 2,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 494,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.00857,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        }
+      ]
+    },
+    {
+      "run": {
+        "version": "product",
+        "split": "dev",
+        "dataset_sha256": "926af2a0d1b47e5d0d15a7aa8a34d4721007f4550a881555b6a89496b54a2606",
+        "split_sha256": "6cea4e7a557ac262c9897d2804ed3f7c5261e36bf43e2fecdebc1d8a80bc2901",
+        "question_ids": [
+          0,
+          9,
+          15,
+          16,
+          32,
+          57,
+          59,
+          67,
+          73,
+          74,
+          89,
+          107,
+          118,
+          130,
+          139,
+          146,
+          156,
+          164,
+          181,
+          187,
+          197,
+          203,
+          215,
+          221,
+          232,
+          240,
+          246,
+          250,
+          259,
+          269,
+          285,
+          310,
+          323,
+          325,
+          353,
+          363,
+          368,
+          370,
+          380,
+          400,
+          405,
+          414,
+          430,
+          431,
+          440,
+          446,
+          449,
+          472,
+          491,
+          494
+        ],
+        "model": "deepseek-v4-pro",
+        "provider": "deepseek",
+        "provider_host": "api.deepseek.com",
+        "temperature": 0.0,
+        "execution_metric": "BIRD EX set equality of typed SQLite rows",
+        "uses_official_evidence": true,
+        "sql_timeout_seconds": 5.0,
+        "model_timeout_seconds": 30,
+        "max_output_tokens": 1024,
+        "max_result_rows": 100000,
+        "observation_max_bytes": 33554432,
+        "workers": 3,
+        "full_split": true,
+        "path": "POST /api/v1/query: app.product_sql.query_database",
+        "prompt_version": "product-bird-storage-grain-1",
+        "system_prompt_sha256": "0ad40ed05687733ac44f8da5f3c1ebb818931f70a99bb209de0b5dad6efc9c99",
+        "source_sha256": {
+          "app/product_sql.py": "535e4845c1640df489c5ab583fc24af3a9cccc94e463c5d77c377265118039da",
+          "app/text2sql.py": "9dc211fc0220c2323dca7e79f6cb306e94dec3cfff5226ead6ff9837de2ef909",
+          "app/schema_linking.py": "72b2e902998bd3a411aa5cf9e6f6acbf623f0bbad9ff6d914d8ec757535e8160",
+          "app/schema_prompt.py": "bc6be4cb2600d5da494ec3fee65de06e77252a19b9b65935d2bfc73d9069310d",
+          "app/auto_column_notes.py": "3b3779f2f8e69408e9c2d0d87e78d32135abb5d8578d9e9a6d2efd91abf757c0",
+          "evaluation/bird_column_notes.py": "5f74bbdb81f18cbedd2840dd490ca32eb17f3fcca35ca09688874a9e60375099",
+          "app/sql_recovery.py": "6b9643c7d8c085f8db2eab8f33beaccd61e2feac7075bae14b63e3982e9d4dfd",
+          "app/recovery_models.py": "b6f6dcdc4ec75e07e3b0f0c3ca0566ccfc3debd4c1feabd884524e124b26f80b",
+          "app/tools/db.py": "10f812f0b5c4bb3dccd780e2ad8840efda3e9c7c5746314746f1600453cb0004",
+          "app/llm.py": "d2244863db41cee7571c3944fa9037fe439f8d983fa4ce38cd9ee35f61a4c561",
+          "app/query_export.py": "216347871e3ba7da18b48ff4cd22781c5e429a6c9cbcabc083c68f3ece8d317f",
+          "app/sql_semantics.py": "6344ce5e54542879965e7eb15b363ba5f868e8c48e603396bf5c987e224173cb",
+          "evaluation/run_product.py": "82ed51f596dd5416b2866f46294b2cc9da8e9136df654adb91d7be21743f5566"
+        },
+        "sqlite_version": "3.54.1",
+        "run_id": "20261112T074954115922Z",
+        "profile": "full",
+        "features": {
+          "value_hints": true,
+          "prompt_guidance": true,
+          "semantic_checks": true
+        },
+        "schema_linking": {
+          "version": "bm25-evidence-fk-1",
+          "top_k": 4,
+          "dense": null
+        }
+      },
+      "summary": {
+        "questions": 50,
+        "correct": 26,
+        "answered": 50,
+        "executed": 50,
+        "wrong_answers": 24,
+        "execution_accuracy": 0.52,
+        "execution_success_rate": 1.0,
+        "wrong_answer_rate": 0.48,
+        "answer_rate": 1.0,
+        "accuracy_on_answered": 0.52,
+        "p50_latency_seconds": 2.34118,
+        "p95_latency_seconds": 6.76199,
+        "statuses": {
+          "mismatch": 24,
+          "correct": 26
+        },
+        "error_types": {
+          "mismatch": 24
+        },
+        "model_calls": 51,
+        "model_calls_with_usage": 51,
+        "benchmark_valid": true,
+        "token_totals": {
+          "prompt_tokens": 62318,
+          "completion_tokens": 8454,
+          "total_tokens": 70772,
+          "prompt_cache_hit_tokens": 58880,
+          "prompt_cache_miss_tokens": 3438
+        },
+        "semantic_checks": {
+          "pre_execution": 50,
+          "post_execution": 50
+        },
+        "by_database": {
+          "california_schools": {
+            "questions": 5,
+            "correct": 1,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 4,
+            "execution_accuracy": 0.2,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.8,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.2,
+            "p50_latency_seconds": 2.34118,
+            "p95_latency_seconds": 6.40028,
+            "statuses": {
+              "mismatch": 4,
+              "correct": 1
+            },
+            "error_types": {
+              "mismatch": 4
+            },
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 7748,
+              "completion_tokens": 890,
+              "total_tokens": 8638,
+              "prompt_cache_hit_tokens": 7424,
+              "prompt_cache_miss_tokens": 324
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "card_games": {
+            "questions": 7,
+            "correct": 4,
+            "answered": 7,
+            "executed": 7,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.5714285714285714,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.42857142857142855,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5714285714285714,
+            "p50_latency_seconds": 1.79701,
+            "p95_latency_seconds": 6.1389,
+            "statuses": {
+              "mismatch": 3,
+              "correct": 4
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 7,
+            "model_calls_with_usage": 7,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 10283,
+              "completion_tokens": 836,
+              "total_tokens": 11119,
+              "prompt_cache_hit_tokens": 9728,
+              "prompt_cache_miss_tokens": 555
+            },
+            "semantic_checks": {
+              "pre_execution": 7,
+              "post_execution": 7
+            }
+          },
+          "codebase_community": {
+            "questions": 4,
+            "correct": 2,
+            "answered": 4,
+            "executed": 4,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.5,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.5,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5,
+            "p50_latency_seconds": 2.29611,
+            "p95_latency_seconds": 6.72377,
+            "statuses": {
+              "correct": 2,
+              "mismatch": 2
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 5438,
+              "completion_tokens": 550,
+              "total_tokens": 5988,
+              "prompt_cache_hit_tokens": 4864,
+              "prompt_cache_miss_tokens": 574
+            },
+            "semantic_checks": {
+              "pre_execution": 4,
+              "post_execution": 4
+            }
+          },
+          "debit_card_specializing": {
+            "questions": 1,
+            "correct": 0,
+            "answered": 1,
+            "executed": 1,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 1.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.0,
+            "p50_latency_seconds": 2.29632,
+            "p95_latency_seconds": 2.29632,
+            "statuses": {
+              "mismatch": 1
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 1,
+            "model_calls_with_usage": 1,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 688,
+              "completion_tokens": 95,
+              "total_tokens": 783,
+              "prompt_cache_hit_tokens": 640,
+              "prompt_cache_miss_tokens": 48
+            },
+            "semantic_checks": {
+              "pre_execution": 1,
+              "post_execution": 1
+            }
+          },
+          "european_football_2": {
+            "questions": 3,
+            "correct": 2,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.6666666666666666,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.3333333333333333,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.6666666666666666,
+            "p50_latency_seconds": 5.39539,
+            "p95_latency_seconds": 8.7403,
+            "statuses": {
+              "correct": 2,
+              "mismatch": 1
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 7003,
+              "completion_tokens": 1157,
+              "total_tokens": 8160,
+              "prompt_cache_hit_tokens": 6784,
+              "prompt_cache_miss_tokens": 219
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          },
+          "financial": {
+            "questions": 5,
+            "correct": 1,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 4,
+            "execution_accuracy": 0.2,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.8,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.2,
+            "p50_latency_seconds": 3.93252,
+            "p95_latency_seconds": 8.16413,
+            "statuses": {
+              "mismatch": 4,
+              "correct": 1
+            },
+            "error_types": {
+              "mismatch": 4
+            },
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4938,
+              "completion_tokens": 1371,
+              "total_tokens": 6309,
+              "prompt_cache_hit_tokens": 4608,
+              "prompt_cache_miss_tokens": 330
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "formula_1": {
+            "questions": 6,
+            "correct": 4,
+            "answered": 6,
+            "executed": 6,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.6666666666666666,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.3333333333333333,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.6666666666666666,
+            "p50_latency_seconds": 2.07586,
+            "p95_latency_seconds": 3.45488,
+            "statuses": {
+              "correct": 4,
+              "mismatch": 2
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 6,
+            "model_calls_with_usage": 6,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 7801,
+              "completion_tokens": 739,
+              "total_tokens": 8540,
+              "prompt_cache_hit_tokens": 7552,
+              "prompt_cache_miss_tokens": 249
+            },
+            "semantic_checks": {
+              "pre_execution": 6,
+              "post_execution": 6
+            }
+          },
+          "student_club": {
+            "questions": 3,
+            "correct": 3,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 0,
+            "execution_accuracy": 1.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 1.0,
+            "p50_latency_seconds": 1.68113,
+            "p95_latency_seconds": 3.1476,
+            "statuses": {
+              "correct": 3
+            },
+            "error_types": {},
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 2620,
+              "completion_tokens": 309,
+              "total_tokens": 2929,
+              "prompt_cache_hit_tokens": 2432,
+              "prompt_cache_miss_tokens": 188
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          },
+          "superhero": {
+            "questions": 5,
+            "correct": 5,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 0,
+            "execution_accuracy": 1.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 1.0,
+            "p50_latency_seconds": 2.13312,
+            "p95_latency_seconds": 2.71946,
+            "statuses": {
+              "correct": 5
+            },
+            "error_types": {},
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4169,
+              "completion_tokens": 500,
+              "total_tokens": 4669,
+              "prompt_cache_hit_tokens": 3840,
+              "prompt_cache_miss_tokens": 329
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "thrombosis_prediction": {
+            "questions": 8,
+            "correct": 4,
+            "answered": 8,
+            "executed": 8,
+            "wrong_answers": 4,
+            "execution_accuracy": 0.5,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.5,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5,
+            "p50_latency_seconds": 2.52203,
+            "p95_latency_seconds": 4.13684,
+            "statuses": {
+              "mismatch": 4,
+              "correct": 4
+            },
+            "error_types": {
+              "mismatch": 4
+            },
+            "model_calls": 8,
+            "model_calls_with_usage": 8,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 9345,
+              "completion_tokens": 1188,
+              "total_tokens": 10533,
+              "prompt_cache_hit_tokens": 8832,
+              "prompt_cache_miss_tokens": 513
+            },
+            "semantic_checks": {
+              "pre_execution": 8,
+              "post_execution": 8
+            }
+          },
+          "toxicology": {
+            "questions": 3,
+            "correct": 0,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 1.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.0,
+            "p50_latency_seconds": 2.66965,
+            "p95_latency_seconds": 6.76199,
+            "statuses": {
+              "mismatch": 3
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 2285,
+              "completion_tokens": 819,
+              "total_tokens": 3104,
+              "prompt_cache_hit_tokens": 2176,
+              "prompt_cache_miss_tokens": 109
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          }
+        },
+        "by_difficulty": {
+          "challenging": {
+            "questions": 47,
+            "correct": 25,
+            "answered": 47,
+            "executed": 47,
+            "wrong_answers": 22,
+            "execution_accuracy": 0.5319148936170213,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.46808510638297873,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5319148936170213,
+            "p50_latency_seconds": 2.36448,
+            "p95_latency_seconds": 6.76199,
+            "statuses": {
+              "mismatch": 22,
+              "correct": 25
+            },
+            "error_types": {
+              "mismatch": 22
+            },
+            "model_calls": 48,
+            "model_calls_with_usage": 48,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 58559,
+              "completion_tokens": 8258,
+              "total_tokens": 66817,
+              "prompt_cache_hit_tokens": 55296,
+              "prompt_cache_miss_tokens": 3263
+            },
+            "semantic_checks": {
+              "pre_execution": 47,
+              "post_execution": 47
+            }
+          },
+          "moderate": {
+            "questions": 3,
+            "correct": 1,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.3333333333333333,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.6666666666666666,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.3333333333333333,
+            "p50_latency_seconds": 1.20667,
+            "p95_latency_seconds": 2.50247,
+            "statuses": {
+              "mismatch": 2,
+              "correct": 1
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 3759,
+              "completion_tokens": 196,
+              "total_tokens": 3955,
+              "prompt_cache_hit_tokens": 3584,
+              "prompt_cache_miss_tokens": 175
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          }
+        }
+      },
+      "questions": [
+        {
+          "question_id": 0,
+          "db_id": "california_schools",
+          "difficulty": "moderate",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.50247,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 9,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.34118,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 15,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.31583,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 16,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.57648,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 32,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 6.40028,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 57,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.79701,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 59,
+          "db_id": "card_games",
+          "difficulty": "moderate",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.20667,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 67,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.62787,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 73,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 6.1389,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 74,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.70631,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 89,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.001,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 107,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.36448,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 118,
+          "db_id": "codebase_community",
+          "difficulty": "moderate",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.03201,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 130,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 6.50296,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 139,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.29611,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 146,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 6.72377,
+          "model_calls": 2,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 156,
+          "db_id": "debit_card_specializing",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.29632,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 164,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.00229,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 181,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 5.39539,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 187,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 8.7403,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 197,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 4.19418,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 203,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.93252,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 215,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.14319,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 221,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 8.16413,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 232,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.25104,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 240,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.07586,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 246,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.44413,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 250,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.10182,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 259,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.93889,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 269,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.45488,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 285,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.0249,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 310,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.68113,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 323,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.45667,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 325,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.1476,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 353,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.13312,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 363,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.72858,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 368,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.71946,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 370,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.95368,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 380,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.45591,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 400,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 4.13684,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 405,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.52203,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 414,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.41553,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 430,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.9796,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 431,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.13552,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 440,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.27396,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 446,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.46171,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 449,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.42758,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 472,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.66965,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 491,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 6.76199,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 494,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.667,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        }
+      ]
+    },
+    {
+      "run": {
+        "version": "product",
+        "split": "dev",
+        "dataset_sha256": "926af2a0d1b47e5d0d15a7aa8a34d4721007f4550a881555b6a89496b54a2606",
+        "split_sha256": "6cea4e7a557ac262c9897d2804ed3f7c5261e36bf43e2fecdebc1d8a80bc2901",
+        "question_ids": [
+          0,
+          9,
+          15,
+          16,
+          32,
+          57,
+          59,
+          67,
+          73,
+          74,
+          89,
+          107,
+          118,
+          130,
+          139,
+          146,
+          156,
+          164,
+          181,
+          187,
+          197,
+          203,
+          215,
+          221,
+          232,
+          240,
+          246,
+          250,
+          259,
+          269,
+          285,
+          310,
+          323,
+          325,
+          353,
+          363,
+          368,
+          370,
+          380,
+          400,
+          405,
+          414,
+          430,
+          431,
+          440,
+          446,
+          449,
+          472,
+          491,
+          494
+        ],
+        "model": "deepseek-v4-pro",
+        "provider": "deepseek",
+        "provider_host": "api.deepseek.com",
+        "temperature": 0.0,
+        "execution_metric": "BIRD EX set equality of typed SQLite rows",
+        "uses_official_evidence": true,
+        "sql_timeout_seconds": 5.0,
+        "model_timeout_seconds": 30,
+        "max_output_tokens": 1024,
+        "max_result_rows": 100000,
+        "observation_max_bytes": 33554432,
+        "workers": 3,
+        "full_split": true,
+        "path": "POST /api/v1/query: app.product_sql.query_database",
+        "prompt_version": "product-bird-storage-grain-1",
+        "system_prompt_sha256": "0ad40ed05687733ac44f8da5f3c1ebb818931f70a99bb209de0b5dad6efc9c99",
+        "source_sha256": {
+          "app/product_sql.py": "535e4845c1640df489c5ab583fc24af3a9cccc94e463c5d77c377265118039da",
+          "app/text2sql.py": "9dc211fc0220c2323dca7e79f6cb306e94dec3cfff5226ead6ff9837de2ef909",
+          "app/schema_linking.py": "72b2e902998bd3a411aa5cf9e6f6acbf623f0bbad9ff6d914d8ec757535e8160",
+          "app/schema_prompt.py": "bc6be4cb2600d5da494ec3fee65de06e77252a19b9b65935d2bfc73d9069310d",
+          "app/auto_column_notes.py": "3b3779f2f8e69408e9c2d0d87e78d32135abb5d8578d9e9a6d2efd91abf757c0",
+          "evaluation/bird_column_notes.py": "5f74bbdb81f18cbedd2840dd490ca32eb17f3fcca35ca09688874a9e60375099",
+          "app/sql_recovery.py": "6b9643c7d8c085f8db2eab8f33beaccd61e2feac7075bae14b63e3982e9d4dfd",
+          "app/recovery_models.py": "b6f6dcdc4ec75e07e3b0f0c3ca0566ccfc3debd4c1feabd884524e124b26f80b",
+          "app/tools/db.py": "10f812f0b5c4bb3dccd780e2ad8840efda3e9c7c5746314746f1600453cb0004",
+          "app/llm.py": "d2244863db41cee7571c3944fa9037fe439f8d983fa4ce38cd9ee35f61a4c561",
+          "app/query_export.py": "216347871e3ba7da18b48ff4cd22781c5e429a6c9cbcabc083c68f3ece8d317f",
+          "app/sql_semantics.py": "6344ce5e54542879965e7eb15b363ba5f868e8c48e603396bf5c987e224173cb",
+          "evaluation/run_product.py": "82ed51f596dd5416b2866f46294b2cc9da8e9136df654adb91d7be21743f5566"
+        },
+        "sqlite_version": "3.54.1",
+        "run_id": "20261112T075947774120Z",
+        "profile": "full",
+        "features": {
+          "value_hints": true,
+          "prompt_guidance": true,
+          "semantic_checks": true
+        },
+        "schema_linking": {
+          "version": "bm25-evidence-fk-1",
+          "top_k": 4,
+          "dense": null
+        }
+      },
+      "summary": {
+        "questions": 50,
+        "correct": 27,
+        "answered": 50,
+        "executed": 50,
+        "wrong_answers": 23,
+        "execution_accuracy": 0.54,
+        "execution_success_rate": 1.0,
+        "wrong_answer_rate": 0.46,
+        "answer_rate": 1.0,
+        "accuracy_on_answered": 0.54,
+        "p50_latency_seconds": 2.4037,
+        "p95_latency_seconds": 9.37052,
+        "statuses": {
+          "mismatch": 23,
+          "correct": 27
+        },
+        "error_types": {
+          "mismatch": 23
+        },
+        "model_calls": 52,
+        "model_calls_with_usage": 52,
+        "benchmark_valid": true,
+        "token_totals": {
+          "prompt_tokens": 64713,
+          "completion_tokens": 8996,
+          "total_tokens": 73709,
+          "prompt_cache_hit_tokens": 60928,
+          "prompt_cache_miss_tokens": 3785
+        },
+        "semantic_checks": {
+          "pre_execution": 50,
+          "post_execution": 50
+        },
+        "by_database": {
+          "california_schools": {
+            "questions": 5,
+            "correct": 1,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 4,
+            "execution_accuracy": 0.2,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.8,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.2,
+            "p50_latency_seconds": 2.36271,
+            "p95_latency_seconds": 10.5868,
+            "statuses": {
+              "mismatch": 4,
+              "correct": 1
+            },
+            "error_types": {
+              "mismatch": 4
+            },
+            "model_calls": 6,
+            "model_calls_with_usage": 6,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 10012,
+              "completion_tokens": 1372,
+              "total_tokens": 11384,
+              "prompt_cache_hit_tokens": 9216,
+              "prompt_cache_miss_tokens": 796
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "card_games": {
+            "questions": 7,
+            "correct": 4,
+            "answered": 7,
+            "executed": 7,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.5714285714285714,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.42857142857142855,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5714285714285714,
+            "p50_latency_seconds": 1.87973,
+            "p95_latency_seconds": 4.82716,
+            "statuses": {
+              "mismatch": 3,
+              "correct": 4
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 7,
+            "model_calls_with_usage": 7,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 10283,
+              "completion_tokens": 722,
+              "total_tokens": 11005,
+              "prompt_cache_hit_tokens": 9728,
+              "prompt_cache_miss_tokens": 555
+            },
+            "semantic_checks": {
+              "pre_execution": 7,
+              "post_execution": 7
+            }
+          },
+          "codebase_community": {
+            "questions": 4,
+            "correct": 2,
+            "answered": 4,
+            "executed": 4,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.5,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.5,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5,
+            "p50_latency_seconds": 1.4629,
+            "p95_latency_seconds": 6.34146,
+            "statuses": {
+              "correct": 2,
+              "mismatch": 2
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 4,
+            "model_calls_with_usage": 4,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4189,
+              "completion_tokens": 400,
+              "total_tokens": 4589,
+              "prompt_cache_hit_tokens": 3968,
+              "prompt_cache_miss_tokens": 221
+            },
+            "semantic_checks": {
+              "pre_execution": 4,
+              "post_execution": 4
+            }
+          },
+          "debit_card_specializing": {
+            "questions": 1,
+            "correct": 0,
+            "answered": 1,
+            "executed": 1,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 1.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.0,
+            "p50_latency_seconds": 2.29128,
+            "p95_latency_seconds": 2.29128,
+            "statuses": {
+              "mismatch": 1
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 1,
+            "model_calls_with_usage": 1,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 688,
+              "completion_tokens": 95,
+              "total_tokens": 783,
+              "prompt_cache_hit_tokens": 640,
+              "prompt_cache_miss_tokens": 48
+            },
+            "semantic_checks": {
+              "pre_execution": 1,
+              "post_execution": 1
+            }
+          },
+          "european_football_2": {
+            "questions": 3,
+            "correct": 2,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 1,
+            "execution_accuracy": 0.6666666666666666,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.3333333333333333,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.6666666666666666,
+            "p50_latency_seconds": 5.67621,
+            "p95_latency_seconds": 9.37052,
+            "statuses": {
+              "correct": 2,
+              "mismatch": 1
+            },
+            "error_types": {
+              "mismatch": 1
+            },
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 7003,
+              "completion_tokens": 1232,
+              "total_tokens": 8235,
+              "prompt_cache_hit_tokens": 6784,
+              "prompt_cache_miss_tokens": 219
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          },
+          "financial": {
+            "questions": 5,
+            "correct": 2,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.4,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.6,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.4,
+            "p50_latency_seconds": 3.66992,
+            "p95_latency_seconds": 8.30376,
+            "statuses": {
+              "correct": 2,
+              "mismatch": 3
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4938,
+              "completion_tokens": 1324,
+              "total_tokens": 6262,
+              "prompt_cache_hit_tokens": 4608,
+              "prompt_cache_miss_tokens": 330
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "formula_1": {
+            "questions": 6,
+            "correct": 4,
+            "answered": 6,
+            "executed": 6,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.6666666666666666,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.3333333333333333,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.6666666666666666,
+            "p50_latency_seconds": 1.93611,
+            "p95_latency_seconds": 3.49213,
+            "statuses": {
+              "correct": 4,
+              "mismatch": 2
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 6,
+            "model_calls_with_usage": 6,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 7801,
+              "completion_tokens": 747,
+              "total_tokens": 8548,
+              "prompt_cache_hit_tokens": 7552,
+              "prompt_cache_miss_tokens": 249
+            },
+            "semantic_checks": {
+              "pre_execution": 6,
+              "post_execution": 6
+            }
+          },
+          "student_club": {
+            "questions": 3,
+            "correct": 3,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 0,
+            "execution_accuracy": 1.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 1.0,
+            "p50_latency_seconds": 1.87852,
+            "p95_latency_seconds": 2.95699,
+            "statuses": {
+              "correct": 3
+            },
+            "error_types": {},
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 2620,
+              "completion_tokens": 308,
+              "total_tokens": 2928,
+              "prompt_cache_hit_tokens": 2432,
+              "prompt_cache_miss_tokens": 188
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          },
+          "superhero": {
+            "questions": 5,
+            "correct": 5,
+            "answered": 5,
+            "executed": 5,
+            "wrong_answers": 0,
+            "execution_accuracy": 1.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 1.0,
+            "p50_latency_seconds": 2.56849,
+            "p95_latency_seconds": 2.92687,
+            "statuses": {
+              "correct": 5
+            },
+            "error_types": {},
+            "model_calls": 5,
+            "model_calls_with_usage": 5,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 4169,
+              "completion_tokens": 503,
+              "total_tokens": 4672,
+              "prompt_cache_hit_tokens": 3840,
+              "prompt_cache_miss_tokens": 329
+            },
+            "semantic_checks": {
+              "pre_execution": 5,
+              "post_execution": 5
+            }
+          },
+          "thrombosis_prediction": {
+            "questions": 8,
+            "correct": 4,
+            "answered": 8,
+            "executed": 8,
+            "wrong_answers": 4,
+            "execution_accuracy": 0.5,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.5,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5,
+            "p50_latency_seconds": 3.02655,
+            "p95_latency_seconds": 3.99624,
+            "statuses": {
+              "mismatch": 4,
+              "correct": 4
+            },
+            "error_types": {
+              "mismatch": 4
+            },
+            "model_calls": 8,
+            "model_calls_with_usage": 8,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 9345,
+              "completion_tokens": 1079,
+              "total_tokens": 10424,
+              "prompt_cache_hit_tokens": 8832,
+              "prompt_cache_miss_tokens": 513
+            },
+            "semantic_checks": {
+              "pre_execution": 8,
+              "post_execution": 8
+            }
+          },
+          "toxicology": {
+            "questions": 3,
+            "correct": 0,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 3,
+            "execution_accuracy": 0.0,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 1.0,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.0,
+            "p50_latency_seconds": 2.53599,
+            "p95_latency_seconds": 11.73665,
+            "statuses": {
+              "mismatch": 3
+            },
+            "error_types": {
+              "mismatch": 3
+            },
+            "model_calls": 4,
+            "model_calls_with_usage": 4,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 3665,
+              "completion_tokens": 1214,
+              "total_tokens": 4879,
+              "prompt_cache_hit_tokens": 3328,
+              "prompt_cache_miss_tokens": 337
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          }
+        },
+        "by_difficulty": {
+          "challenging": {
+            "questions": 47,
+            "correct": 26,
+            "answered": 47,
+            "executed": 47,
+            "wrong_answers": 21,
+            "execution_accuracy": 0.5531914893617021,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.44680851063829785,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.5531914893617021,
+            "p50_latency_seconds": 2.53599,
+            "p95_latency_seconds": 9.37052,
+            "statuses": {
+              "mismatch": 21,
+              "correct": 26
+            },
+            "error_types": {
+              "mismatch": 21
+            },
+            "model_calls": 49,
+            "model_calls_with_usage": 49,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 60954,
+              "completion_tokens": 8799,
+              "total_tokens": 69753,
+              "prompt_cache_hit_tokens": 57344,
+              "prompt_cache_miss_tokens": 3610
+            },
+            "semantic_checks": {
+              "pre_execution": 47,
+              "post_execution": 47
+            }
+          },
+          "moderate": {
+            "questions": 3,
+            "correct": 1,
+            "answered": 3,
+            "executed": 3,
+            "wrong_answers": 2,
+            "execution_accuracy": 0.3333333333333333,
+            "execution_success_rate": 1.0,
+            "wrong_answer_rate": 0.6666666666666666,
+            "answer_rate": 1.0,
+            "accuracy_on_answered": 0.3333333333333333,
+            "p50_latency_seconds": 1.55098,
+            "p95_latency_seconds": 2.28796,
+            "statuses": {
+              "mismatch": 2,
+              "correct": 1
+            },
+            "error_types": {
+              "mismatch": 2
+            },
+            "model_calls": 3,
+            "model_calls_with_usage": 3,
+            "benchmark_valid": true,
+            "token_totals": {
+              "prompt_tokens": 3759,
+              "completion_tokens": 197,
+              "total_tokens": 3956,
+              "prompt_cache_hit_tokens": 3584,
+              "prompt_cache_miss_tokens": 175
+            },
+            "semantic_checks": {
+              "pre_execution": 3,
+              "post_execution": 3
+            }
+          }
+        }
+      },
+      "questions": [
+        {
+          "question_id": 0,
+          "db_id": "california_schools",
+          "difficulty": "moderate",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.28796,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 9,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.36271,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 15,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.72366,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 16,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.79576,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 32,
+          "db_id": "california_schools",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 10.5868,
+          "model_calls": 2,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 57,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.87973,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 59,
+          "db_id": "card_games",
+          "difficulty": "moderate",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.55098,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 67,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.74913,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 73,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 4.82716,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 74,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.74522,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 89,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.19799,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 107,
+          "db_id": "card_games",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.24448,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 118,
+          "db_id": "codebase_community",
+          "difficulty": "moderate",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.39686,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 130,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 6.34146,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 139,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.4629,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 146,
+          "db_id": "codebase_community",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.99925,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 156,
+          "db_id": "debit_card_specializing",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.29128,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 164,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.15547,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 181,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 5.67621,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 187,
+          "db_id": "european_football_2",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 9.37052,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 197,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.66992,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 203,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.88492,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 215,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.35983,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 221,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 8.30376,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 232,
+          "db_id": "financial",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.25949,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 240,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.97864,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 246,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.93611,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 250,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.81925,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 259,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 1.8233,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 269,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.49213,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 285,
+          "db_id": "formula_1",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.68731,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 310,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.75359,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 323,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.87852,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 325,
+          "db_id": "student_club",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.95699,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 353,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.7088,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 363,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.58091,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 368,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.92687,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 370,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 1.68917,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 380,
+          "db_id": "superhero",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.56849,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 400,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.99624,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 405,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.0134,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 414,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.24743,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 430,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.4037,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 431,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 3.02655,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 440,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 1,
+          "status": "correct",
+          "latency_seconds": 2.71229,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 446,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.83098,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 449,
+          "db_id": "thrombosis_prediction",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 3.5996,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 472,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.53599,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 491,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 11.73665,
+          "model_calls": 2,
+          "stop_reason": "executed"
+        },
+        {
+          "question_id": 494,
+          "db_id": "toxicology",
+          "difficulty": "challenging",
+          "ex": 0,
+          "status": "mismatch",
+          "latency_seconds": 2.44344,
+          "model_calls": 1,
+          "stop_reason": "executed"
+        }
+      ]
+    }
+  ]
+}

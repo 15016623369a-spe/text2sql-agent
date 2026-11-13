@@ -2,3 +2,5 @@ fastapi==0.162.2
 uvicorn==0.54.0
 httpx==0.28.1
 langsmith==0.14.17
+psycopg[binary]==3.3.4
+pglast==7.21

@@ -13,13 +13,14 @@ from plotly.subplots import make_subplots
 from pydantic import TypeAdapter, ValidationError
 
 from protocol import (
-    MAX_CHART_COLUMNS, MAX_COLUMNS, MAX_EXAMPLES, MAX_PLAN_BYTES, MAX_ROWS, MAX_UPLOAD_BYTES,
+    MAX_CHART_COLUMNS, MAX_COLUMNS, MAX_EXAMPLES, MAX_PLAN_BYTES, MAX_PREVIEW_REPLY_BYTES, MAX_REPLY_BYTES,
+    MAX_ROWS, MAX_UPLOAD_BYTES,
     AnalysisRequest, AnalysisResult, AuditPlan, CoveragePlan, ColumnProfile, FileLayout, InspectRequest, Outlier, PreviewRequest,
-    ProfilePlan, WorkerFailure, WorkerRequest,
+    ProfilePlan, TaskResult, WorkerFailure, WorkerRequest,
 )
-from audit import audit_frame
+from audit import audit_frame, workbook_tolerances
 from panel import analyze_panel
-from tabular import inspect_layout, load_frame
+from tabular import Header, HeaderLayoutError, inspect_layout, load_frame
 from tasks import analyze_task, clean_label
 
 _MIN_IQR_ROWS = 4
@@ -102,7 +103,8 @@ def _clean_frame(frame: pd.DataFrame) -> pd.DataFrame:
     return frame.replace(r"^\s*$", None, regex=True).dropna(how="all")
 
 
-def _profile_frame(frame: pd.DataFrame, cleaned: pd.DataFrame, columns: list[int], chart: bool) -> AnalysisResult:
+def _profile_frame(frame: pd.DataFrame, cleaned: pd.DataFrame, columns: list[int], chart: bool,
+                   header: Header) -> AnalysisResult:
     indices = columns or list(range(len(frame.columns)))
     if len(set(indices)) != len(indices) or any(index >= len(frame.columns) for index in indices):
         raise ValueError("分析计划引用了不存在或重复的列")
@@ -115,6 +117,7 @@ def _profile_frame(frame: pd.DataFrame, cleaned: pd.DataFrame, columns: list[int
     return AnalysisResult(
         rows=len(cleaned), columns=len(frame.columns), dropped_blank_rows=len(frame) - len(cleaned),
         duplicate_rows=int(cleaned.duplicated().sum()), numeric=profiles, chart_columns=chart_columns, figure=figure,
+        header_row=header.row, header_depth=header.depth,
     )
 
 
@@ -124,14 +127,22 @@ def analyze(data: bytes, request: WorkerRequest):
     layout = request.layout if isinstance(request, AnalysisRequest) else FileLayout(
         sheet=request.sheet, header_row=request.header_row, header_depth=request.header_depth,
     )
-    frame, data_offset = load_frame(data, request.format, layout)
+    try:
+        frame, header = load_frame(data, request.format, layout)
+    except HeaderLayoutError as exc:
+        return TaskResult(status="clarification", message=str(exc))
     cleaned = _clean_frame(frame)
     if isinstance(request, AnalysisRequest):
-        return _profile_frame(frame, cleaned, [], request.chart)
+        return _profile_frame(frame, cleaned, [], request.chart, header)
     if isinstance(request.plan, ProfilePlan):
-        return _profile_frame(frame, cleaned, request.plan.columns, request.plan.chart)
+        return _profile_frame(frame, cleaned, request.plan.columns, request.plan.chart, header)
     if isinstance(request.plan, AuditPlan):
-        return audit_frame(cleaned, request.plan, data_offset=data_offset)
+        data_offset = header.row - 1 + header.depth
+        tolerances = workbook_tolerances(
+            data, request.format, request.sheet, {check.target for check in request.plan.checks},
+            data_offset=data_offset, rows=len(frame),
+        )
+        return audit_frame(cleaned, request.plan, data_offset=data_offset, display_tolerances=tolerances)
     if isinstance(request.plan, CoveragePlan):
         return analyze_panel(cleaned, request.plan)
     return analyze_task(cleaned, request)
@@ -146,7 +157,16 @@ def main() -> int:
         data = sys.stdin.buffer.read(MAX_UPLOAD_BYTES + 1)
         if not data or len(data) > MAX_UPLOAD_BYTES:
             raise ValueError("文件为空或超过 10 MiB")
-        print(analyze(data, request).model_dump_json())
+        result = analyze(data, request)
+        payload = result.model_dump_json()
+        if isinstance(result, TaskResult) and len(payload.encode()) >= MAX_REPLY_BYTES:
+            for table in result.tables:
+                table.additional_rows = None
+            payload = result.model_dump_json()
+        limit = MAX_REPLY_BYTES if isinstance(result, TaskResult) else MAX_PREVIEW_REPLY_BYTES
+        if len(payload.encode()) >= limit:
+            raise ValueError("分析结果超过可展示的大小，请缩小筛选范围")
+        print(payload)
     except ValidationError:
         print(WorkerFailure(error="分析请求或结果格式无效").model_dump_json())
     except ValueError as exc:

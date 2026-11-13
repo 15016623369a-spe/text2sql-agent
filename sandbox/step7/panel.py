@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 
 import pandas as pd
 
-from protocol import MAX_GROUP_ROWS, CoveragePlan, ResultTable, TaskResult
+from protocol import CoveragePlan, ResultTable, TaskResult
 from tasks import apply_filters, empty_selection, clean_label, numeric_values
 
 _PERIOD = re.compile(r"(\d{4})(?:年|\.0+|[-/]\d{1,2}(?:[-/]\d{1,2})?(?: 00:00:00)?)?")
@@ -37,10 +37,6 @@ def _year(value) -> int | None:
 
 def _key(value) -> str:
     return re.sub(r"^(\d+)\.0+$", r"\1", re.sub(r"\s+", "", _text(value)).casefold())
-
-
-def _table(title: str, columns: list[str], rows: list[list]) -> ResultTable:
-    return ResultTable(title=title, columns=columns, rows=rows[:MAX_GROUP_ROWS], total_groups=len(rows))
 
 
 def _percent(before: float | None, after: float | None) -> float | None:
@@ -165,8 +161,8 @@ def analyze_panel(frame: pd.DataFrame, plan: CoveragePlan) -> TaskResult:
         for key in sorted(difference)
     ]
     tables = [
-        _table("年度覆盖", ["年份", "有效记录行数", "去重实体数", "全期固定样本", "较前期退出", "较前期新增", "重复行数"], annual_rows),
-        _table(f"{before}→{after} 实体进出", ["变化", *(headings[i] for i in label_fields), "用于匹配的标识"], changes),
+        ResultTable.from_rows("年度覆盖", ["年份", "有效记录行数", "去重实体数", "全期固定样本", "较前期退出", "较前期新增", "重复行数"], annual_rows),
+        ResultTable.from_rows(f"{before}→{after} 实体进出", ["变化", *(headings[i] for i in label_fields), "用于匹配的标识"], changes),
     ]
     pair_rows, series_rows = [], []
     for index in plan.measures:
@@ -198,14 +194,14 @@ def analyze_panel(frame: pd.DataFrame, plan: CoveragePlan) -> TaskResult:
         )
     if pair_rows:
         tables.extend([
-            _table(f"{before}→{after} 同口径对照", [
+            ResultTable.from_rows(f"{before}→{after} 同口径对照", [
                 "指标", f"{before}有效实体数", f"{after}有效实体数", "共同有效实体数",
                 f"{before}当年合计", f"{after}当年合计", "当年合计变化（%）",
                 f"{before}共同样本合计", f"{after}共同样本合计", "同口径变化（%）",
                 f"仅{before}有有效值的合计", f"仅{after}有有效值的合计",
                 "实体进出对合计的净影响", "共同实体缺失值对合计的净影响",
             ], pair_rows),
-            _table("固定样本时序", ["年份", "指标", "当年有效实体数", "当年可用样本合计", "全期有效固定实体数", "固定样本合计"], series_rows),
+            ResultTable.from_rows("固定样本时序", ["年份", "指标", "当年有效实体数", "当年可用样本合计", "全期有效固定实体数", "固定样本合计"], series_rows),
         ])
         lines.append("两年合计差额可拆成共同有效样本的变化、实体进出的净影响、共同实体缺失值的净影响。长期趋势用各年均有有效值的固定样本。")
     else:

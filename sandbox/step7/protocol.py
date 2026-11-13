@@ -8,7 +8,8 @@ MAX_ROWS = 10_000
 MAX_COLUMNS = 50
 MAX_CHART_COLUMNS = 6
 MAX_EXAMPLES = 20
-MAX_REPLY_BYTES = 512 * 1024
+MAX_PREVIEW_REPLY_BYTES = 512 * 1024
+MAX_REPLY_BYTES = 8 * 1024 * 1024
 
 FileFormat = Literal["csv", "xlsx", "xls"]
 MAX_SHEETS = 8
@@ -27,7 +28,7 @@ class StrictPayload(BaseModel):
 class FileLayout(StrictPayload):
     sheet: SheetId | None = None
     header_row: HeaderRow | None = None
-    header_depth: HeaderDepth = 1
+    header_depth: HeaderDepth | None = None
 
 
 class AnalysisRequest(StrictPayload):
@@ -69,6 +70,8 @@ class AnalysisResult(StrictPayload):
     numeric: list[ColumnProfile] = Field(max_length=MAX_COLUMNS)
     chart_columns: list[str] = Field(max_length=MAX_CHART_COLUMNS)
     figure: dict | None = None
+    header_row: HeaderRow = 1
+    header_depth: HeaderDepth = 1
 
 
 class WorkerFailure(StrictPayload):
@@ -105,6 +108,7 @@ class SheetSchema(StrictPayload):
     numeric_columns: list[ColumnId] = Field(max_length=MAX_COLUMNS)
     header_row: HeaderRow = 1
     header_depth: HeaderDepth = 1
+    issue: str | None = None
 
 
 class FileSchema(StrictPayload):
@@ -121,7 +125,10 @@ class SheetPreview(StrictPayload):
     columns: list[str] = Field(max_length=MAX_COLUMNS)
     sample_start: int = Field(ge=1)
     rows: list[list[Cell]] = Field(max_length=MAX_PREVIEW_ROWS)
+    sample_included: bool | None = None
     issue: str | None = None
+    warnings: list[str] = Field(default_factory=list, max_length=5)
+    needs_confirmation: bool = False
 
 
 class FilePreview(StrictPayload):
@@ -255,6 +262,7 @@ class AuditPlan(StrictPayload):
     mode: Literal["audit"]
     checks: list[AuditCheck] = Field(min_length=1, max_length=3)
     labels: list[ColumnId] = Field(default_factory=list, max_length=3)
+    tolerance: float | None = Field(default=None, ge=0, exclude_if=lambda value: value is None)
 
 
 Year = Annotated[int, Field(ge=1000, le=2999)]
@@ -296,6 +304,14 @@ class ResultTable(StrictPayload):
     rows: list[list[Cell]] = Field(max_length=MAX_GROUP_ROWS)
     total_groups: int = Field(ge=0)
     limit: int | None = Field(default=None, ge=1, le=MAX_RANK_ROWS)
+    additional_rows: list[list[Cell]] | None = Field(default=None, max_length=MAX_ROWS, exclude_if=lambda value: value is None)
+
+    @classmethod
+    def from_rows(cls, title: str, columns: list[str], rows: list[list[Cell]], *, limit: int | None = None,
+                  preview_rows: int = MAX_GROUP_ROWS) -> "ResultTable":
+        selected = rows[:limit] if limit is not None else rows
+        return cls(title=title, columns=columns, rows=selected[:preview_rows], total_groups=len(rows), limit=limit,
+                   additional_rows=selected[preview_rows:] or None)
 
 
 class TaskResult(StrictPayload):

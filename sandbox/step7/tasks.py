@@ -12,7 +12,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from protocol import (
-    MAX_GROUP_ROWS, AggregatePlan, Filter, ProvenancePlan, ResultScope, ResultTable, TaskRequest, TaskResult,
+    AggregatePlan, Filter, ProvenancePlan, ResultScope, ResultTable, TaskRequest, TaskResult,
 )
 
 _EMPTY = {"", "na", "n/a", "none", "null", "nan", "<na>", "nat", "缺失"}
@@ -159,10 +159,7 @@ def _groups(frame: pd.DataFrame, columns: list[int]):
 
 def _table(headings: list[str], groups: list[int], columns: list[str], rows: list[list]) -> ResultTable:
     dimensions = [headings[col] for col in groups]
-    return ResultTable(
-        title="按" + " × ".join(dimensions) if groups else "整体",
-        columns=dimensions + columns, rows=rows[:MAX_GROUP_ROWS], total_groups=len(rows),
-    )
+    return ResultTable.from_rows("按" + " × ".join(dimensions) if groups else "整体", dimensions + columns, rows)
 
 
 def _share(count: int, denominator: int) -> float | None:
@@ -246,8 +243,7 @@ def _rank_table(title: str, names: list[str], rows: list[list], metric: int, pla
     # Python's stable sort keeps input order for ties. Groups arrive in sorted key order.
     valid = [row for row in rows if row[metric] is not None]
     valid.sort(key=lambda row: row[metric], reverse=plan.order_by.direction == "desc")
-    return ResultTable(title=title, columns=names, rows=valid[:plan.limit or MAX_GROUP_ROWS],
-                       total_groups=len(valid), limit=plan.limit)
+    return ResultTable.from_rows(title, names, valid, limit=plan.limit)
 
 
 def _records(frame: pd.DataFrame, headings: list[str], plan: AggregatePlan, scope: ResultScope) -> TaskResult:

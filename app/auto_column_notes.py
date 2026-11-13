@@ -23,6 +23,8 @@ _GENERIC = set("data value field record recorded each per show list get id ident
 _TEMPORAL = {"date", "month", "year", "timestamp"}
 _NUMERIC = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)")
 _BOUND = re.compile(r"(?:[<>]=?|[≤≥])\s*[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)")
+_ENCODED_AMOUNT = re.compile(r"[^()]{1,20}\(\s*[0-9]+(?:\.[0-9]+)?\s*\)")
+_CATEGORY = re.compile(r"[\w /&+<>=.()'-]{1,40}")
 
 
 _MISSING_TERMS = {"missing", "null", "empty", "blank", "unknown", "unrecorded"}
@@ -115,6 +117,7 @@ class _Profile:
     facts: list[str]
     sampled: int
     populated: int
+    examples: tuple[str, ...] = ()
 
     @property
     def sparse(self) -> bool:
@@ -163,10 +166,11 @@ def _count_scope(query: str, keys: set[_ForeignKey]) -> tuple[str, set[str]]:
 
 
 class AutoColumnNotes:
-    def __init__(self, db_path: Path, metadata: dict[str, dict[str, ColumnNote]]):
+    def __init__(self, db_path: Path, metadata: dict[str, dict[str, ColumnNote]], *, value_hints: bool = False):
         self._db_path = db_path
         self._metadata = metadata
         self._profiles: dict[str, dict[str, _Profile | None]] = {}
+        self._value_hints = value_hints
 
     def _profile(self, db: ReadOnlyDB, table: str, notes: dict[str, ColumnNote]) -> dict[str, _Profile]:
         names = sorted(notes)
@@ -190,8 +194,19 @@ class AutoColumnNotes:
                 value is not None and (not isinstance(value, str) or bool(value.strip()))
                 for value in values
             )
+            facts = summarize_storage(values, temporal=temporal)
+            examples = ()
+            if self._value_hints:
+                strings = {value for value in values if isinstance(value, str) and value.strip()}
+                if 1 <= len(strings) <= 16 and populated >= max(8, 3 * len(strings)) and all(
+                    _CATEGORY.fullmatch(value) and not re.search(r"\d{6}", value) for value in strings
+                ):
+                    ordered = sorted(strings, key=lambda item: (len(item), item.casefold(), item))
+                    examples = tuple(ordered) if len(json.dumps(ordered, ensure_ascii=False)) <= 170 else ()
+                if any(_ENCODED_AMOUNT.fullmatch(value.strip()) for value in strings):
+                    facts.append("Sampled text includes amounts inside parentheses; the prefix can be a separate grade")
             profiles[name] = _Profile(
-                _encoding(note, values), summarize_storage(values, temporal=temporal), len(values), populated,
+                _encoding(note, values), facts, len(values), populated, examples,
             )
         return profiles
 
@@ -275,6 +290,19 @@ class AutoColumnNotes:
                 fields.pop((table, column))
 
         ordering = sorted(matched - redirects.keys()) + rank_fields(fields, query)
+        if self._value_hints:
+            query_phrase = " " + " ".join(_tokens(query)) + " "
+            literal_fields = []
+            for table in sorted(sample_tables):
+                for column, profile in sorted(self._profiles.get(table, {}).items()):
+                    if (table, column) not in fields or not profile:
+                        continue
+                    for value in profile.examples:
+                        words = _tokens(value)
+                        if len(words) >= 2 and " " + " ".join(words) + " " in query_phrase:
+                            literal_fields.append((table, column))
+                            break
+            ordering = literal_fields + ordering
         candidates = [scope, *redirects.values()]
         for table, column in dict.fromkeys(ordering):
             note = notes[table, column]
@@ -290,6 +318,10 @@ class AutoColumnNotes:
                     facts.append("Very few sampled rows have a populated value")
                 if facts:
                     parts.append("SQLite sample — " + "; ".join(facts))
+                if profile.examples:
+                    parts.append("Observed categories (sample) — " + ", ".join(
+                        json.dumps(value, ensure_ascii=False) for value in profile.examples
+                    ))
             if (table, column) in matched:
                 parts.append("A stored category in this column matches the question or evidence")
             if parts:

@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import math
 import re
 import sqlite3
-from collections import Counter, deque
+from collections import Counter, defaultdict, deque
 from contextlib import closing
 from difflib import get_close_matches
 from itertools import combinations
@@ -171,6 +172,46 @@ class SchemaIndex:
                 columns = self.columns[table]
                 if 2 <= len(columns) <= _LOOKUP_COLUMNS:
                     self._labels[table] = _lookup_labels(db, table, columns)
+
+    @classmethod
+    def from_catalog(cls, tables: list[dict]) -> SchemaIndex:
+        """Build the same index from catalog metadata supplied by a database adapter."""
+        index = cls.__new__(cls)
+        index.ddl = {}
+        index.columns = {table["name"]: {column["name"] for column in table["columns"]} for table in tables}
+        index.foreign_keys = set()
+        index._graph = {name: set() for name in index.columns}
+        index._labels = {}
+        documents = {}
+        for table in tables:
+            name = table["name"]
+            qualified = ".".join(map(quote_identifier, (table["schema"], name)))
+            columns = [f'{quote_identifier(column["name"])} {column["type"]}' for column in table["columns"]]
+            constraints = defaultdict(list)
+            for key in table.get("foreign_keys", ()):
+                target = key["target_table"]
+                if target not in index.columns:
+                    continue
+                source_col, target_col = key["column"], key["target_column"]
+                index.foreign_keys.add((name, source_col, target, target_col))
+                if target != name:
+                    index._graph[name].add(target)
+                    index._graph[target].add(name)
+                constraints[(target, key["constraint"])].append((source_col, target_col))
+            for (target, _constraint), pairs in constraints.items():
+                target_sql = ".".join(map(quote_identifier, (table["schema"], target)))
+                source_cols = ", ".join(quote_identifier(source) for source, _ in pairs)
+                target_cols = ", ".join(quote_identifier(target_col) for _, target_col in pairs)
+                columns.append(f"FOREIGN KEY ({source_cols}) REFERENCES {target_sql} ({target_cols})")
+            ddl = f"CREATE TABLE {qualified} (\n  " + ",\n  ".join(columns) + "\n);"
+            comments = {column["name"]: column["comment"] for column in table["columns"] if column["comment"]}
+            if table["comment"] or comments:
+                descriptions = json.dumps({"table": table["comment"], "columns": comments}, ensure_ascii=False)
+                ddl += "\nDescriptions: " + descriptions
+            index.ddl[name] = ddl
+            documents[name] = " ".join([name, *sorted(index.columns[name]), table["comment"] or "", *comments.values()])
+        index._ranker = _BM25(documents)
+        return index
 
     def _evidence(self, query: str, ranked: list[tuple[str, float]], top: list[str]):
         question = _phrase(re.sub(r'"[^"]{61,}"', " ", query))

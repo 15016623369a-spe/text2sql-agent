@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from app.file_analysis import analyze_upload
 from app.file_sandbox import IMAGE, SandboxError, local_docker, run_sandbox
-from sandbox.step7.protocol import MAX_UPLOAD_BYTES, AnalysisRequest, AnalysisResult, ColumnProfile, Outlier
+from sandbox.step7.protocol import MAX_UPLOAD_BYTES, AnalysisRequest, AnalysisResult, ColumnProfile, Outlier, TaskResult
 
 
 def report():
@@ -31,6 +31,14 @@ class FileAnalysisTests(unittest.TestCase):
         self.assertIn("1 个疑似异常值", result.narrative)
         self.assertIn("数据行 6 的 110", result.narrative)
         self.assertEqual(result.report.chart_columns, ["收入"])
+
+    def test_offline_csv_requests_confirmation_for_ambiguous_header(self):
+        message = "无法确定多级表头的结束行。请在预览中确认表头起始行和表头行数。"
+        with patch("app.file_analysis.run_sandbox", return_value=TaskResult(status="clarification", message=message)):
+            result = analyze_upload("sample.csv", b"test", "统计一下")
+        self.assertEqual(result.kind, "clarification")
+        self.assertEqual(result.narrative, message)
+        self.assertIsNone(result.report)
 
     def test_unrecognized_inputs_are_rejected_before_launch(self):
         with patch("app.file_analysis.run_sandbox") as sandbox:

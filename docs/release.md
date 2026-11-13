@@ -29,7 +29,16 @@ docker compose --env-file .env.production.local \
 - 用小样本完成 CSV 和 Excel 上传。运行公式核对、来源统计及跨年同口径分析，确认错误请求得到明确提示。
 - 在目标主机确认工作容器无网络、无宿主目录挂载，且内存、CPU 和进程数限制生效。
 - 验证真实域名证书、外部访问范围、备份可恢复和运维告警。监控磁盘、容器重启、HTTP 5xx、模型配额及响应时间，并按数据保留政策清理状态卷。
+- 接入外部 PostgreSQL 时，以独立 reader 账号验证 `verify-full`、查询权限与写入拒绝。[PostgreSQL 部署检查](postgres.md#配置实际数据源)
 - 依赖审计、镜像扫描和目标环境容量验收通过后再放开访问。当前方案使用单实例 SQLite，适合受控试用。
+
+## 错误和追踪
+
+对话错误提供 `stop_reason`、`suggestion` 和 `trace_id`。已受理的对话错误会进入会话历史。凭追踪编号可查本机记录，内容包含阶段耗时和 token 用量。
+
+直接调用 `api.deepseek.com` 的 `deepseek-v4-pro` 时，成本以公开峰时费率估算。2026 年 11 月 11 日核对的每百万 token 费率依次为缓存命中输入 0.044 美元、未命中输入 1.32 美元、输出 3.96 美元。可用 `RAG_MODEL_PRICE_USD_PER_MILLION` 以逗号分隔这三项费率来覆盖默认值或配置其他模型。未配置费率或缺少用量时，费用显示为无法估算。[DeepSeek 官方费率](https://api-docs.deepseek.com/quick_start/pricing/)
+
+开启 LangSmith 后，连续三次导出失败会暂停远程导出，并在服务日志中提示一次。本机继续保存追踪。修正远程设置后重启 API 可恢复导出。
 
 ## 状态备份与回退
 
@@ -46,12 +55,15 @@ dc up -d --wait
 
 使用独立 Compose 项目和空状态卷演练恢复。校验备份后，使用目标项目的 `docker compose run --rm --no-deps -T --entrypoint tar api -C /state -xzf - < rag-state.tar.gz` 恢复。然后用测试账号验证会话、审批和追踪。镜像、配置和账号资料需与状态备份配套保管。出现故障时，将已验证的前一版镜像与其对应的备份恢复到独立项目，通过冒烟验证后切换入口。
 
+状态卷包含已保存的文件分析和对应原文件。备份按同样的数据保留政策保护和清理。
+
 参考 [Docker Compose 合并规则](https://docs.docker.com/reference/compose-file/merge/)、[Caddy Basic Auth](https://caddyserver.com/docs/caddyfile/directives/basic_auth) 和 [Docker rootless 模式](https://docs.docker.com/engine/security/rootless/)。
 
 ## 本机验收记录
 
-- 62 项自动回归测试通过。
+- 宿主项目环境的 164 项自动回归全部通过，包含 Excel 解析和导出。
 - 独立 HTTPS 环境通过匿名和错误密码拦截、伪造用户头拦截、双账号会话与追踪隔离、审批重放及并发限制。
+- 隔离生产验收中，Caddy 和 PostgreSQL 分别通过 TLS 1.3 握手。PostgreSQL 拒绝错误 CA、主机名和明文连接。独立 reader 在显式读写事务中仍无法写入、建对象或切换管理员角色。
 - SQL 流程通过结构检索、缺列修复、写入拦截和用量记录。真实 DeepSeek 合成查询也已通过。
 - CSV、XLSX、XLS 读取通过。核对了概况、异常值与绘图、来源统计、公式校验、跨年覆盖和模型故障提示。浏览器通过 HTTPS 登录、WebSocket、XSRF 上传和绘图。
 - 合成状态卷已成功备份并恢复，SQLite 完整性、审批记录和私有追踪均已核对。

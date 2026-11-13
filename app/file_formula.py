@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import math
 import re
 import unicodedata
 
@@ -13,18 +14,45 @@ _PEOPLE = {"人": 1, "千人": 1_000, "万人": 10_000, "亿人": 100_000_000}
 _MONEY = {"元": 1, "千元": 1_000, "万元": 10_000, "亿元": 100_000_000}
 _COUNTS = {"户": 1, "万户": 10_000, "亿户": 100_000_000, "个": 1, "万个": 10_000}
 _POPULATION = {"人口", "常住人口", "年末常住人口", "年末人口"}
+_AREA_COLUMNS = {"面积", "总面积", "土地面积", "行政区划面积", "行政区域面积", "行政面积", "地区面积"}
+_AREA = {"平方米": 1, "平方公里": 1_000_000, "公顷": 10_000, "亩": 2000 / 3,
+         "平方厘米": 0.0001, "平方毫米": 0.000001}
+_UNIT_ALIASES = {
+    "平方千米": "平方公里", "km2": "平方公里", "km^2": "平方公里",
+    "m2": "平方米", "m^2": "平方米", "ha": "公顷",
+    "cm2": "平方厘米", "cm^2": "平方厘米", "mm2": "平方毫米", "mm^2": "平方毫米",
+}
 _QUOTED = re.compile(r'["“「]([^"”」]+)["”」]')
 _OPERATIONS = {ast.Add: "add", ast.Sub: "subtract", ast.Mult: "multiply", ast.Div: "divide"}
 
 _UNIT_PART = (
     r"(?:[千百十万亿]*(?:元|人|户|个|件|套|单|笔|次|台|辆|吨|克|米|公里|平方米|立方米|升|年|月|日|小时|分钟|秒|度)"
+    r"|平方(?:公里|千米|厘米|毫米)|公顷|亩|ha|(?:km|cm|mm|m)\^?[23]"
     r"|%|‰|1|℃|usd|eur|cny|kg|g|mg|km|m|cm|mm|s|ms|h|l|ml|kwh|wh|w|kw|mw|pa|kpa|mpa)"
 )
-_HEADER_UNIT = re.compile(rf"{_UNIT_PART}(?:[/·]{_UNIT_PART}){{0,3}}(?:[²³]|\^[23])?")
+_HEADER_UNIT = re.compile(rf"{_UNIT_PART}(?:[/·]{_UNIT_PART}){{0,3}}")
+_TOLERANCE = re.compile(
+    r"(?:^|[,;。])(?:指定|使用|允许|按)?(?:绝对)?(?:误差)?容差[:=]?(?:为)?([^,;。!?]*)(?=$|[,;。!?])"
+)
+_DEVIATION_DETAILS = re.compile(
+    r"[,;。](?:并|再|然后)?(?:列出|找出|展示|显示|给出|返回)(?:偏差|误差)(?:最大|最高)(?:的)?(?:记录|数据行|行)$"
+)
+_AUDIT_PREFIX = re.compile(
+    r"^(?:请)?(?:逐行)?(?:核对|校验|验证|重算|复算|检查|复核)(?:一下)?"
+    r"(?:(?:[^=;:]{0,80}的)?(?:计算|换算|重算)?公式:?)?"
+)
+_TARGETS_BEFORE_FORMULA = re.compile(
+    r"(?:核对|校验|验证|检查|复核)(?:一下)?(?P<targets>[^,;:。!?]+?)"
+    r"(?:列(?:的)?|的)?(?:(?:计算|换算|重算)?公式|是否正确|算得对不对|的计算偏差)"
+)
 
 
 def normalize(text: str) -> str:
     return re.sub(r"\s+", "", unicodedata.normalize("NFKC", text)).casefold()
+
+
+def _canonical_unit(unit: str) -> str:
+    return "".join(_UNIT_ALIASES.get(part, part) for part in re.split(r"([/·])", unit))
 
 
 def _label(text: str) -> tuple[str, str]:
@@ -33,8 +61,8 @@ def _label(text: str) -> tuple[str, str]:
     if match:
         unit = match[2]
         if unit.startswith("单位:"):
-            return match[1], unit.removeprefix("单位:")
-        return match[1], unit if _HEADER_UNIT.fullmatch(unit) else ""
+            return match[1], _canonical_unit(unit.removeprefix("单位:"))
+        return match[1], _canonical_unit(unit) if _HEADER_UNIT.fullmatch(unit) else ""
     return value, ""
 
 
@@ -55,18 +83,26 @@ def ratio_hints(schema: FileSchema, question: str) -> dict[int, list[AuditCheck]
         population = [(i, _PEOPLE[unit]) for i, (name, unit) in enumerate(names) if name in _POPULATION and unit in _PEOPLE]
         if len(population) != 1:
             continue
-        denominator, denominator_factor = population[0]
+        population_index, population_factor = population[0]
+        areas = [(i, _AREA[unit]) for i, (name, unit) in enumerate(names) if name in _AREA_COLUMNS and unit in _AREA]
         checks = []
         for target, (name, unit) in enumerate(names):
-            if name not in text:
+            if not name or name not in text:
                 continue
-            if name.startswith("人均") and unit.endswith("/人") and unit.removesuffix("/人") in _MONEY:
+            denominator = population_index
+            if name in {"人口密度", "常住人口密度"} and unit.startswith("人/") and unit[2:] in _AREA:
+                if len(areas) != 1:
+                    continue
+                numerator = population_index
+                denominator, area_factor = areas[0]
+                multiplier = population_factor * _AREA[unit[2:]] / area_factor
+            elif name.startswith("人均") and unit.endswith("/人") and unit.removesuffix("/人") in _MONEY:
                 base = name.removeprefix("人均")
                 bases = [i for i, (label, units) in enumerate(names) if label == base and units in _MONEY]
                 if len(bases) != 1:
                     continue
                 numerator = bases[0]
-                multiplier = _MONEY[names[numerator][1]] / denominator_factor / _MONEY[unit.removesuffix("/人")]
+                multiplier = _MONEY[names[numerator][1]] / population_factor / _MONEY[unit.removesuffix("/人")]
             elif name.startswith("每百人"):
                 base = name.removeprefix("每百人").removesuffix("数")
                 bases = [i for i, (label, units) in enumerate(names)
@@ -79,7 +115,7 @@ def ratio_hints(schema: FileSchema, question: str) -> dict[int, list[AuditCheck]
                 if unit and unit not in {count_unit, count_unit + "/百人"}:
                     continue
                 unit = count_unit + "/百人"
-                multiplier = 100 * _COUNTS[source_unit] / denominator_factor
+                multiplier = 100 * _COUNTS[source_unit] / population_factor
             else:
                 continue
             formula = FormulaBinary(
@@ -128,8 +164,7 @@ def _arithmetic(node, depth: int = 0) -> tuple[Formula, set[int]]:
 
 
 def _explicit_checks(columns: list[str], question: str) -> list[AuditCheck]:
-    text = normalize(question).rstrip("。?！!")
-    text = re.sub(r"^(?:请)?(?:核对|校验|验证|重算|复算|检查)(?:一下)?(?:公式:?)?", "", text)
+    text = _AUDIT_PREFIX.sub("", question)
     formula_text, _, declarations = re.split(r"[,;。]?(单位(?:说明)?):", text, maxsplit=1) if re.search(
         r"单位(?:说明)?:", text
     ) else (text, "", "")
@@ -141,6 +176,7 @@ def _explicit_checks(columns: list[str], question: str) -> list[AuditCheck]:
             index = aliases.get(_unquote(name))
             if not sep or index is None or not re.fullmatch(r"[\w%°℃/·^²³-]{1,24}", unit):
                 raise ValueError("请按「单位：列名=单位」声明各列单位")
+            unit = _canonical_unit(unit)
             if index in units and units[index] != unit:
                 raise ValueError(f"「{columns[index]}」的声明单位与表头冲突，请确认实际单位")
             units[index] = unit
@@ -173,20 +209,44 @@ def _explicit_checks(columns: list[str], question: str) -> list[AuditCheck]:
     return checks
 
 
+def _audit_options(question: str) -> tuple[str, float | None]:
+    text = normalize(question).rstrip("。?!")
+    matches = list(_TOLERANCE.finditer(text))
+    if not matches:
+        return _DEVIATION_DETAILS.sub("", text), None
+    try:
+        if len(matches) != 1:
+            raise ValueError
+        tolerance = float(matches[0][1])
+        if not math.isfinite(tolerance) or tolerance < 0:
+            raise ValueError
+    except ValueError as exc:
+        raise ValueError("请用「容差=0.05」指定一个非负数，单位与目标列相同") from exc
+    return _DEVIATION_DETAILS.sub("", _TOLERANCE.sub("", text)), tolerance
+
+
 def audit_plan(schema: FileSchema, question: str) -> AuditPlan:
     sheet = schema.sheets[0]
-    if re.search(r"[=＝]|等于", question):
-        checks = _explicit_checks(sheet.columns, question)
+    text, tolerance = _audit_options(question)
+    formula_text = re.split(r"[,;。]?单位(?:说明)?:", text, maxsplit=1)[0]
+    if re.search(r"=|等于", formula_text):
+        checks = _explicit_checks(sheet.columns, text)
     else:
-        checks = ratio_hints(schema, question).get(sheet.index, [])
+        checks = ratio_hints(schema, text).get(sheet.index, [])
         aliases = _aliases(sheet.columns)
         requested = {aliases.get(normalize(name)) for name in _QUOTED.findall(question)}
+        if targets := _TARGETS_BEFORE_FORMULA.search(text):
+            names = re.split(r"[、,]|和|与|以及", targets["targets"])
+            requested |= {aliases[name] for item in names if (name := _unquote(item.removesuffix("列"))) in aliases}
         count = re.search(r"([1-9一二两三四五])\s*个(?:派生|衍生)", question)
         expected_count = {"一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5}.get(count[1], count[1]) if count else 0
         if not checks or not requested <= {check.target for check in checks} or len(checks) < int(expected_count):
-            raise ValueError("无法确认全部目标列的公式和单位。请给出重算公式，并注明目标列及输入列的单位")
+            raise ValueError(
+                "无法确认全部目标列的公式和单位。请按「目标列 = 输入列 × 输入列」补充重算公式。"
+                "表头未标单位时，请同时注明目标列及输入列的单位"
+            )
     if not 1 <= len(checks) <= 3 or len({check.target for check in checks}) != len(checks):
         raise ValueError("每次请核对 1 到 3 个不重复的派生列")
     labels = [index for index, column in enumerate(sheet.columns)
               if _label(column)[0] in {"时间", "年份", "城市", "省份", "地区", "日期", "year", "city"}][:3]
-    return AuditPlan(mode="audit", checks=checks, labels=labels)
+    return AuditPlan(mode="audit", checks=checks, labels=labels, tolerance=tolerance)

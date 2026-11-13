@@ -5,7 +5,7 @@ import argparse
 import fcntl
 import json
 import sqlite3
-from contextlib import closing
+from contextlib import closing, contextmanager, nullcontext
 from pathlib import Path
 
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -72,17 +72,25 @@ def _run(graph, config, args: argparse.Namespace) -> dict:
     return _show(graph.get_state(config))
 
 
-def run_conversation(
-    root: Path, args: argparse.Namespace, settings: Settings | None = None, *,
-    assistant=None, data_source: str | None = None,
-) -> dict:
+@contextmanager
+def conversation_lock(root: Path):
+    """Serialize checkpoint access and any associated write for this conversation store."""
     root.mkdir(parents=True, exist_ok=True)
     with (root / ".step6.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
+
+
+def run_conversation(
+    root: Path, args: argparse.Namespace, settings: Settings | None = None, *,
+    assistant=None, data_source: str | None = None, data_tables: tuple[str, ...] | None = None, lock_held: bool = False,
+) -> dict:
+    with nullcontext() if lock_held else conversation_lock(root):
         database = prepare_database(root)
         with closing(_checkpoint_connection(root / "step6_sessions.sqlite")) as connection:
             graph = build_conversation(
                 database, settings, SqliteSaver(connection), assistant=assistant, data_source=data_source,
+                data_tables=data_tables,
             )
             config = {"configurable": {"thread_id": args.session}}
             return _run(graph, config, args)

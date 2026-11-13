@@ -1,6 +1,7 @@
-"""Bounded, error-driven Text-to-SQL recovery for read-only SQLite."""
+"""Bounded, error-driven Text-to-SQL recovery for read-only queries."""
 from __future__ import annotations
 
+import json
 import re
 import sqlite3
 import urllib.error
@@ -17,12 +18,17 @@ from app.telemetry import span
 from app.recovery_graph import build_graph
 from app.recovery_models import MAX_RECOVERIES, DryRunCheck, FailureKind, Phase, RecoveryFeedback, SqlCandidate, SqlFailure
 from app.tools.db import ReadOnlyViolation
+from app.tools.postgres import PostgresQueryError, PostgresScopeViolation, PostgresUnavailable
 
 VERSION = "sqlite-dry-run-recovery-2"
 _MISSING = re.compile(r"^no such (table|column): (.+)$", re.IGNORECASE)
 _REPAIRABLE = re.compile(r"syntax error$|^incomplete input$|^unrecognized token:|^ambiguous column name:|^no such function:", re.I)
 _POLICY_ERRORS = {sqlite3.SQLITE_AUTH, sqlite3.SQLITE_PERM, sqlite3.SQLITE_READONLY}
 _RECOVERABLE = {"missing_table", "missing_column", "sql_repair"}
+
+
+class DemoScopeViolation(ReadOnlyViolation):
+    """The read query targets an object outside the public demo schema."""
 
 
 class _State(TypedDict, total=False):
@@ -38,18 +44,30 @@ class _State(TypedDict, total=False):
 
 
 def classify_error(exc: sqlite3.Error | OSError, phase: Phase) -> SqlFailure:
-    """Classify a SQLite error for routing and structured feedback."""
+    """Classify an adapter error for routing and structured feedback."""
     detail = str(exc)
     code = (getattr(exc, "sqlite_errorcode", 0) or 0) & 0xFF
     kind: FailureKind = "execution_error"
     identifier = None
     if isinstance(exc, TimeoutError) or code == sqlite3.SQLITE_INTERRUPT:
         kind = "timeout"
+    elif isinstance(exc, PostgresUnavailable):
+        kind = "database_unavailable"
+    elif isinstance(exc, DemoScopeViolation):
+        kind = "demo_scope"
+    elif isinstance(exc, PostgresScopeViolation):
+        kind = "postgres_scope"
     elif (
         isinstance(exc, ReadOnlyViolation) or code in _POLICY_ERRORS
         or detail.casefold().startswith("not authorized") or "one statement at a time" in detail
     ):
         kind = "policy_blocked"
+    elif isinstance(exc, PostgresQueryError):
+        if exc.sqlstate in {"42P01", "42703"} and exc.identifier:
+            kind = "missing_table" if exc.sqlstate == "42P01" else "missing_column"
+            identifier = exc.identifier
+        elif exc.sqlstate in {"42601", "42702", "42703", "42803", "42804", "42883", "42P01"}:
+            kind = "sql_repair"
     elif match := _MISSING.fullmatch(detail):
         kind = "missing_table" if match[1].casefold() == "table" else "missing_column"
         identifier = match[2]
@@ -68,6 +86,7 @@ def run_recovery(
     expand_scope: Callable[[dict, str, str], dict | None],
     build_prompt: Callable[[dict], list[dict[str, str]]],
     max_recoveries: int,
+    dialect: str = "SQLite",
 ) -> tuple[dict, tuple[list[str], list[tuple]] | None]:
     if not 0 <= max_recoveries <= MAX_RECOVERIES:
         raise ValueError(f"Recovery budget must be between 0 and {MAX_RECOVERIES}")
@@ -174,10 +193,16 @@ def run_recovery(
             action=action, retry_count=retry_count, previous_sql=sql,
             sqlite_error=SqlFailure.model_validate(failure),
         )
+        if dialect == "PostgreSQL":
+            fields = feedback.model_dump(exclude_none=True)
+            fields["postgres_error"] = fields.pop("sqlite_error")
+            serialized = json.dumps(fields, ensure_ascii=False, separators=(",", ":"))
+        else:
+            serialized = feedback.model_dump_json(exclude_none=True)
         retry = build_prompt(selection)
         messages = [
             *retry[:-1],
-            {**retry[-1], "content": retry[-1]["content"] + "\n\nExecution feedback:\n" + feedback.model_dump_json(exclude_none=True)},
+            {**retry[-1], "content": retry[-1]["content"] + "\n\nExecution feedback:\n" + serialized},
         ]
         return {
             "selection": selection, "messages": messages, "action": action,

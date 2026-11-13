@@ -49,6 +49,22 @@ class AutoColumnNotesTests(unittest.TestCase):
         ranked = rank_fields(fields, "fastest recorded lap time in milliseconds")
         self.assertEqual(set(ranked), {("laps", "lapTime"), ("laps", "milliseconds")})
 
+    def test_opt_in_storage_hints_preserve_case_and_detect_encoded_amounts(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "example.sqlite"
+            with sqlite3.connect(path) as conn:
+                conn.execute("CREATE TABLE facts(status TEXT, reading TEXT, email TEXT)")
+                conn.executemany("INSERT INTO facts VALUES (?, ?, ?)", [
+                    ("Legal" if i % 2 else "Restricted", "3+ (300)", "private@example.org") for i in range(16)
+                ])
+            selected = {"facts": {"status", "reading", "email"}}
+            notes = AutoColumnNotes(path, {}, value_hints=True)
+            result = "\n".join(notes.render(selected, "legal status and reading and email"))
+            self.assertIn('"Legal"', result)
+            self.assertIn("amounts inside parentheses", result)
+            self.assertNotIn("private@example.org", result)
+            self.assertNotIn('"Legal"', "\n".join(AutoColumnNotes(path, {}).render(selected, "status")))
+
     def test_sparse_role_label_resolves_to_populated_foreign_key_target(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "example.sqlite"

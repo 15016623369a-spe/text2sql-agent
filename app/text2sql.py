@@ -29,12 +29,12 @@ def full_schema(db: ReadOnlyDB) -> str:
     return "\n\n".join(schema_objects(db).values())
 
 
-def build_messages(schema: str, question: str, evidence: str) -> list[dict[str, str]]:
+def build_messages(schema: str, question: str, evidence: str, *, dialect: str = "SQLite") -> list[dict[str, str]]:
     return [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": SYSTEM_PROMPT.replace("SQLite", dialect)},
         {
             "role": "user",
-            "content": f"SQLite schema:\n{schema}\n\nQuestion:\n{question}\n\nEvidence:\n{evidence}",
+            "content": f"{dialect} schema:\n{schema}\n\nQuestion:\n{question}\n\nEvidence:\n{evidence}",
         },
     ]
 
