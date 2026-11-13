@@ -1,0 +1,130 @@
+.jianshu-brand {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .15rem 0 .65rem;
+    color: #16382b;
+    font-size: 1.2rem;
+    letter-spacing: .035em;
+}
+
+.jianshu-mark {
+    display: grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: .7rem;
+    background: #174633;
+    color: #f4fbf6;
+    font-size: 1.02rem;
+    font-weight: 700;
+}
+
+.jianshu-hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    min-height: 10.4rem;
+    margin: .15rem 0 .8rem;
+    padding: clamp(1.5rem, 4vw, 3.1rem);
+    border: 1px solid #24503c;
+    border-radius: 1.15rem;
+    background: linear-gradient(111deg, #123629 0%, #173f32 65%, #225b43 100%);
+}
+
+.jianshu-hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 41rem;
+}
+
+.jianshu-hero h1 {
+    margin: 0 0 .6rem;
+    padding: 0;
+    color: #f5fbf7;
+    font-size: clamp(2rem, 4.3vw, 3.35rem);
+    line-height: 1.14;
+    letter-spacing: -.04em;
+}
+
+.jianshu-hero p {
+    margin: 0;
+    color: #d8ebe0;
+    line-height: 1.65;
+}
+
+.jianshu-hero-pattern {
+    position: absolute;
+    inset: 0 0 0 46%;
+    opacity: .55;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 76% 55%, #a8d7b92e, transparent 67%),
+        repeating-linear-gradient(90deg, #b8e3c92c 0 1px, transparent 1px 31px),
+        repeating-linear-gradient(0deg, #b8e3c91c 0 1px, transparent 1px 31px);
+    mask-image: linear-gradient(90deg, transparent, black 54%);
+}
+
+[data-testid="stMainBlockContainer"] {
+    max-width: 72rem;
+    padding-top: 2.15rem;
+}
+
+[data-testid="stChatMessage"] {
+    border: 1px solid #dce7de;
+    border-radius: .95rem;
+    background: #fff;
+}
+
+[data-testid="stChatMessageAvatarUser"] {
+    background-color: #e1f1e7;
+    color: #185a42;
+}
+
+[data-testid="stChatMessageAvatarAssistant"] {
+    background-color: #174633;
+    color: #f4fbf6;
+}
+
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+    border-color: #d5e5da;
+    background: #edf5ef;
+}
+
+[data-testid="stMetricValue"] {
+    color: #164b36;
+    font-weight: 680;
+    letter-spacing: -.035em;
+}
+
+.st-key-demo-questions {
+    padding: 1.15rem;
+    border: 1px solid #d9e5dc;
+    border-radius: .95rem;
+    background: #fff;
+}
+
+.st-key-demo-questions h4 {
+    margin: 0;
+    padding: 0;
+    font-size: .97rem;
+    font-weight: 650;
+}
+
+@media (max-width: 640px) {
+    [data-testid="stMainBlockContainer"] {
+        padding-top: 1rem;
+    }
+
+    .jianshu-hero {
+        min-height: auto;
+        padding: 1.45rem 1.25rem;
+    }
+
+    .jianshu-hero-pattern {
+        inset-inline-start: 58%;
+        opacity: .35;
+    }
+}

@@ -11,6 +11,19 @@ def main():
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(executable_path=os.getenv("CHROMIUM_EXECUTABLE"))
         try:
+            starter = browser.new_page(viewport={"width": 1280, "height": 900})
+            starter.goto(f"{origin}/?session={uuid4()}", wait_until="domcontentloaded")
+            expect(starter.get_by_role("heading", name="和数据对话")).to_be_visible(timeout=20000)
+            starter_messages = starter.get_by_test_id("stChatMessage")
+            expect(starter_messages).to_have_count(0)
+            example = starter.get_by_role("button", name="上月净营收", exact=True)
+            example.click(timeout=20000)
+            expect(starter_messages.last.get_by_text("¥475.00", exact=False)).to_be_visible(timeout=20000)
+            starter.reload(wait_until="domcontentloaded")
+            expect(starter_messages.last.get_by_text("¥475.00", exact=False)).to_be_visible(timeout=20000)
+            starter.close()
+            print("PASS suggested question and durable answer", flush=True)
+
             page = browser.new_page(viewport={"width": 1280, "height": 900})
             page.goto(f"{origin}/?session={session}", wait_until="domcontentloaded")
             expect(page.get_by_role("heading", name="和数据对话")).to_be_visible(timeout=20000)

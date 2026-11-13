@@ -1,2 +1,25 @@
 [client]
 toolbarMode = "minimal"
+
+[theme]
+base = "light"
+primaryColor = "#116A50"
+backgroundColor = "#F4F7F4"
+secondaryBackgroundColor = "#E8F0EB"
+textColor = "#172B23"
+linkColor = "#116A50"
+borderColor = "#CEDCD3"
+dataframeBorderColor = "#D5E1D9"
+dataframeHeaderBackgroundColor = "#EAF2ED"
+dataframeHeaderTextColor = "#244A3A"
+codeBackgroundColor = "#EDF4EF"
+font = "Inter, system-ui, sans-serif"
+headingFont = "Inter, system-ui, sans-serif"
+baseRadius = "0.75rem"
+buttonRadius = "0.6rem"
+chartCategoricalColors = ["#147D60", "#438A9E", "#7E65A8", "#B26B34", "#5A7A53", "#9F5369"]
+
+[theme.sidebar]
+backgroundColor = "#EAF1EB"
+secondaryBackgroundColor = "#F8FAF8"
+borderColor = "#CDDAD1"

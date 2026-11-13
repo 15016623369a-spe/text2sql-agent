@@ -1,156 +1,173 @@
 # 见数 · Text2SQL Agent
 
-见数是一个面向结构化数据的问数助手。它用自然语言查询 SQLite 和只读 PostgreSQL，也能读取 CSV、XLSX 和 XLS，完成筛选、聚合、Top N、公式核对和绘图。查询结果带有可展开的 SQL，表格分析会显示工作表、筛选条件、参与行数和计算口径。
+用自然语言查询数据库，或上传一份 Excel 直接做分析。见数会在问题缺少时间、地区或指标口径时先确认条件，然后执行查询，给出可核对的 SQL、统计表和图表。也可以在同一会话里继续追问、调整筛选条件或下载结果。
 
-## 快速开始
+[三分钟演示视频](examples/demo/jianshu-demo.mp4) · [示例工作簿](examples/demo/retail-demo.xlsx) · [逐步演示](docs/demo.md) · [快速启动](#快速启动) · [评测与复现](#评测与复现)
 
-安装 Docker Desktop，或准备带 Compose v2 的 Docker Engine。在项目目录启动服务。
+![见数数据库问数工作区，展示演示库净营收、查询口径、SQL 及 CSV 下载入口](docs/media/chat-workspace.png)
+
+## 两个工作区
+
+### 数据库问数
+
+- **查询、澄清和追问。** 在演示库里问「9 月营收是多少？」。见数会确认退款口径。此时回复「十月」可更正月份，再回复「净营收」得到 **¥475.00**。继续问「只看华南」，得到 **¥175.00**，页面会标明沿用的月份、口径和本轮地区。新会话可直接点击「上月净营收」「各地区订单数」或「上月退款总额」体验。
+- **结果可核对。** 每轮展示已解析的时间、地区和指标口径。可查看生成的 SQL、结果预览、模型用量和执行阶段，也可下载同次查询的完整 CSV。新问题会结束旧澄清，独立查询缺少时间时会明确确认。刷新后可恢复会话与审批状态。
+- **可选数据源和表范围。** 内置订单库可以离线演示。也可挂载 BIRD SQLite 数据库，或接入部署方配置的只读 PostgreSQL。PostgreSQL 工作区可浏览表结构、选择本次可查的表；换数据源或表范围时，后续查询使用新范围。
+- **写操作经人工审批。** 试试「将订单 1001 的备注改为已核对」。先查看变更内容，再批准或拒绝。这个写入入口仅用于演示订单备注。外部 SQLite 和 PostgreSQL 问数始终只读。
+
+### 文件分析
+
+![见数文件分析结果，展示 2026 年城市销售额排名、下载入口和 Plotly 柱状图](docs/media/file-workspace.png)
+
+- **先确认读入方式。** 上传 CSV、XLSX 或 XLS 后先预览。Excel 支持选择工作表和确认表头范围，适配标题行、多级表头和合并表头。布局有歧义时先要求确认，数据区的空值按缺失处理。
+- **筛选、分组、排名与绘图。** 在示例工作簿的「城市营收」选第 2–3 行为表头，问「2026 年销售额最高的 3 个城市并画图」。系统先筛出 5 条 2026 年记录，再返回杭州 **12,800 元**、广州 **11,200 元**和成都 **9,600 元**。表和图使用同一排序。也可问「有没有异常值并画图」，查看疑似异常点和判定方法。
+- **逐行重算公式。** 在「公式核对」工作表选第 2 行为表头，输入「核对公式：人均收入 = 收入 / 人口」。系统以元/人重算 6 行，报告南京原值 **285 元/人**、重算值 **280 元/人**，以及 1 行实质超差、4 行舍入级差异、1 行完全一致。可在问题里指定 `容差=0.05`。
+- **分析填充来源与样本覆盖。** 有显式来源标记时，可按年份或地区统计观测、估算填充和来源未确认的比例。跨期比较可列出新增、退出和共同样本，使用同一批样本对照前后变化。
+- **保存结果供继续分析。** 结果表支持 CSV 和 Excel 下载，Plotly 图表可交互查看。每个会话保留最近一次已受理分析的文件、问题、布局和结果，刷新后可恢复，也可在界面删除保存内容。每次分析使用一张工作表，文件上限 10 MiB，每张表最多 10,000 个数据行和 50 列。
+
+## 快速启动
+
+需要 Docker Desktop 或带 Compose v2 的 Docker Engine。首次构建需要联网下载镜像和依赖。
 
 ```bash
-docker compose up --build --wait
+git clone https://github.com/15016623369a-spe/text2sql-agent.git
+cd text2sql-agent
+bash scripts/demo.sh
 ```
 
-首次构建需要访问 Docker Hub、PyPI 和 Debian 软件源。启动后打开 [对话界面](http://127.0.0.1:8501) 或 [FastAPI 文档](http://127.0.0.1:8000/docs)。
+打开 [演示界面](http://127.0.0.1:18501) 或 [演示 API 文档](http://127.0.0.1:18000/docs)。演示使用独立端口和状态卷，内置 6 条合成订单，参考日期为 2026-11-10。示例营收、多级表头 Top N 和公式核对均可在服务启动后离线完成。用 `bash scripts/demo.sh stop` 停止演示。
 
-内置电商演示使用 6 条合成订单，参考日期为 2026-11-10。下面的流程可以离线体验。
-
-1. **查数和追问。** 输入「上月营收多少？」，回答「扣除退款」，再问「只看华南」。对应结果为 ¥475.00 和 ¥175.00。页面显示月份、地区和退款口径。
-2. **审批。** 输入「将订单 1001 的备注改为已核对」，查看变更后点击「批准更新」。
-3. **文件分析。** 切到「文件分析」，上传下面的 `sample.csv`。确认表头后问「有没有异常值并画图」，可以看到箱线图和疑似异常值 110。
-
-```csv
-amount
-10
-11
-12
-13
-14
-110
-```
-
-用 `docker compose down` 停止服务。默认 Compose 将界面和 API 发布到本机回环地址，状态存储在独立卷中。受控部署的配置见 [单机部署与恢复](docs/release.md)。
-
-## 三分钟演示
-
-在项目目录运行 `bash scripts/demo.sh`，然后打开 [独立演示界面](http://127.0.0.1:18501)。首次构建需下载镜像和依赖。默认可离线完成营收澄清、多级表头 Top N 和公式核对。用 `bash scripts/demo.sh live` 可追加一次真实模型 SQL 查询，在追踪里查看 token。停止演示用 `bash scripts/demo.sh stop`。
-
-[观看三分钟演示](examples/demo/jianshu-demo.mp4) · [逐步演示与预期结果](docs/demo.md) · [下载示例工作簿](examples/demo/retail-demo.xlsx)
-
-## 功能与边界
-
-- **数据库问数。** 可查内置订单、挂载的 BIRD SQLite 或部署方配置的 PostgreSQL。支持同一数据范围内的追问、澄清、SQL 核对和 CSV 导出。外部数据库只读，演示订单备注更新需单独审批。PostgreSQL 可选表并查看结构，当前支持符合权限要求的普通表。
-- **表格分析。** 可预览 CSV、XLSX、XLS，选定工作表和表头后做筛选、分组统计、Top N、图表与逐行公式核对。每次分析使用一张工作表。公式核对需要明确的单位及公式，或能从字段可靠推断。单文件上限 10 MiB。
-- **结果核对。** 界面提供数据源、可解析的口径、执行阶段和模型用量。真实模型可能生成可执行但口径有误的 SQL，结果可结合 SQL、表结构和原始数据复核。
+配置模型后，可以用 `bash scripts/demo.sh live` 启动在线演示。问「列出订单编号、地区和下单日期，按订单编号升序排列」，展开「本次追踪」查看模型调用、SQL 试跑和 token。固定营收案例由本地逻辑执行，模型调用次数和 token 均为 0。[演示脚本与预期结果](docs/demo.md)
 
 ## 技术栈
 
-- **应用与交互**　Python 3.11、FastAPI、Uvicorn、Streamlit。工作流通过 NDJSON 推送处理阶段和最终结果。
-- **Agent 编排与状态**　LangGraph、SQLite Checkpointer、Pydantic。状态图管理澄清、审批、SQL 校验与恢复，模型输出按结构化协议解析。
-- **模型接入**　OpenAI 兼容 Chat Completions。Compose 配置密钥后默认使用 DeepSeek V4 Pro，可切换兼容模型。历史 BIRD 对照实验使用 `deepseek-flash`。
-- **Schema RAG**　BM25、表名和字典值匹配、外键图最短路径、自动字段补注。可选 BGE-M3、Sentence Transformers 和 Chroma 做本地向量召回。
-- **数据执行**　SQLite、PostgreSQL、Psycopg 3、pglast。只读连接和 `EXPLAIN` 试跑设有执行时限。表格侧使用 pandas、openpyxl、xlrd 与 Plotly。
-- **部署与观测**　Docker Compose、Caddy、Unix socket 和 SQLite 追踪存储。可选 LangSmith 上报步骤耗时和模型用量。
+- **前端与 API**　Streamlit、Plotly、FastAPI、Uvicorn。API 用 NDJSON 流式返回执行阶段和最终结果。
+- **Agent 与模型**　LangGraph、SQLite Checkpointer、Pydantic、OpenAI 兼容 Chat Completions。容器默认配置 DeepSeek V4 Pro，支持兼容端点和模型。
+- **Schema RAG**　BM25、表名和字典值匹配、外键图、自动字段补注。可选 BGE-M3、Sentence Transformers、Chroma。
+- **执行层**　SQLite、PostgreSQL、Psycopg 3、pglast、pandas、openpyxl、xlrd。
+- **部署与追踪**　Python 3.11、Docker Compose、Caddy、Unix socket、本地 SQLite 追踪及可选 LangSmith。
 
 ## 工作机制
 
 ```mermaid
-flowchart LR
-    UI["Streamlit 对话与文件入口"] --> API["FastAPI"]
+flowchart TD
+    UI["Streamlit"] --> API["FastAPI · NDJSON"]
     API --> Chat["LangGraph 对话工作流"]
-    Chat <-->|"恢复会话"| State[("SQLite Checkpointer")]
-    Chat -->|"条件待确认"| Clarify["用户补充月份、地区或口径"]
+    Chat <-->|"加载与保存状态"| State[("SQLite Checkpointer")]
+    Chat -->|"缺少条件"| Clarify["用户确认或更正查询条件"]
     Clarify --> Chat
-    Chat -->|"固定演示指标"| Run
-    Chat -->|"自然语言查询"| RAG["Schema 召回与字段补注"]
-    RAG --> SQL["模型生成结构化 SQL"]
-    SQL --> Check["SQL 工具 · SQLite / PostgreSQL 只读试跑"]
-    Check -->|"通过"| Run["执行、预览与 CSV"]
-    Check -->|"可恢复错误"| Repair["修复 SQL 或补检索"]
-    Repair --> SQL
+    Chat -->|"可识别的演示查询"| Exec["执行 · 结果预览 · CSV"]
+    Chat -->|"自然语言查库"| Schema["Schema RAG · 检索表列与补充外键"]
+    Schema --> SQL["模型生成结构化 SQL"]
+    SQL --> Check["SQL 工具 · 只读约束与 EXPLAIN"]
+    Check -->|"通过"| Exec
+    Check -->|"可恢复错误"| Retry["修复 SQL 或扩展检索"]
+    Retry --> SQL
     Chat -->|"演示备注更新"| Approval["人工审批 · HITL"]
-    Approval -->|"批准"| Write["执行演示备注更新"]
-    API --> File["工作表预览与分析计划"]
-    File --> Worker["文件工具 · 隔离容器执行 pandas"]
-    Worker --> Report["统计表、解释与 Plotly 图"]
-    API --> Trace["本地追踪与可选 LangSmith"]
+    Approval -->|"批准"| Write["执行一次备注更新"]
+    API --> Preview["工作表与表头预览"]
+    Preview --> Plan["确定分析计划"]
+    Plan --> Worker["文件工具 · Docker 内执行 pandas"]
+    Worker --> Result["统计表 · Plotly 图表 · 文字解读"]
+    API --> Trace["本地追踪 · 可选 LangSmith"]
 ```
 
-### 1. Schema RAG 与自动补注
+### Schema RAG 让模型拿到相关结构
 
-系统把问题、业务证据和表列元数据用于召回。BM25 先选出 Top-4 表，随后根据表名、短字典值命中补入候选表，再沿声明外键补齐 JOIN 所需的桥接表。启用 BGE-M3 后，表文档和列文档分别向量检索，再按表去重并补充候选。
+默认 SQLite 路径先用 BM25 召回 Top-4 表，再按表名和短字典值扩展候选，从声明的外键关系补齐 JOIN 所需的桥接表。BIRD 路径会用官方字段说明和有限的本地样本生成字段含义、值编码及存储格式补注，再按问题相关性和提示词预算筛选。参考 SQL 留在本地评分流程。
 
-自动补注结合官方字段说明、本地有限样本的存储画像和查询相关性，帮助区分文本数字、日期编码、稀疏列和字段含义。参考 SQL 留在本地评分流程。详见 [Schema Linking](docs/v2-schema-linking.md)、[召回修复](docs/v2-schema-recall-fix.md) 和 [BGE-M3 与 Chroma](docs/v2-dense-schema.md)。
+BIRD SQLite 路径可选 BGE-M3 + Chroma。表和列分别做向量召回，按表去重后最多补入两张候选，再补外键桥接表。早期独立召回实验中，200 道留出题的最终表覆盖率从 98.09% 升至 99.36%。该指标基于参考 SQL 的表读集。本文的产品执行准确率使用默认 BM25 路径。PostgreSQL 使用目录中的表列名称、类型、注释和外键做结构检索，并受选表范围约束。[召回策略](docs/v2-schema-linking.md) · [漏表修复](docs/v2-schema-recall-fix.md) · [自动补注](docs/v2-holdout-and-automation.md) · [向量检索对照](docs/v2-dense-schema.md)
 
-### 2. 可核对的 SQL 执行与恢复
+### SQL 试跑与有上限的恢复
 
-模型返回单条 SQL。服务先验证 JSON 结构，再用对应数据库的 `EXPLAIN` 检查语法和表列引用，通过只读约束后才正式执行。可恢复错误按类型进入 SQL 修复或补检索，最多共享三次重试。重复错误、权限违规和超时会结束请求。
+模型按结构化协议返回一条 SQL。应用验证输出结构、表范围和只读约束，用数据库的 `EXPLAIN` 检查语法和表列引用，通过后才执行。可恢复错误按类型修复 SQL 或扩展 Schema 检索，两条路径共享最多三次重试。重复错误、权限违规或超时会结束请求，并给出具体提示和追踪编号。
 
-SQLite 查询由只读连接和 authorizer 约束。PostgreSQL 查询经语法树检查、选表范围校验、只读账号和事务约束，并使用服务端游标。两条路径共用执行时限、50 行预览、完整 CSV 快照和追踪。合法 SQL 仍可能产生语义错误，因此评测用参考结果单独计算执行准确率。详见 [试跑与纠错](docs/v3-step5-dry-run.md) 和 [PostgreSQL 连接器](docs/postgres.md)。
+SQLite 通过只读连接和 authorizer 限制访问。PostgreSQL 通过语法树检查、选表范围、独立 reader 和只读事务约束执行。界面预览最多 50 行，未触及执行和导出上限时，可下载同次执行的完整 CSV，保留原顺序。CSV 上限为 8 MiB，保留 24 小时。规则型语义检查可拦截部分明显不符的结果。SQL 通过试跑后仍有可能算错，界面保留 SQL 和口径用于复核。[试跑与恢复](docs/v3-step5-dry-run.md) · [PostgreSQL 连接器](docs/postgres.md)
 
-### 3. 多轮澄清与人工审批
+### 多轮状态和审批可恢复
 
-待澄清时，「净营收」「扣除退款」「十月」等短答会补齐或更正原问题的条件。新的完整问题会结束旧澄清，用户也可以在界面取消。「每个月各地区的订单数」之后输入「只看十月」，会沿用订单数和分组，只调整月份。页面标明沿用的查询和已解析条件。独立营收问题缺少月份或退款口径时先澄清。演示库金额汇总统一以元展示。
+LangGraph 保存已解析条件和待确认事项。短答可补齐或覆盖原条件，明确追问只修改用户指定的范围，新问题或用户取消可结束待确认状态。演示备注审批需要会话匹配及显式批准，变更与去重记录在同一事务写入。[多轮对话与审批](docs/step6-conversation.md)
 
-LangGraph 把待处理状态写入 SQLite Checkpointer，后续请求按会话继续。演示订单备注更新要求匹配的审批编号和显式批准，备注变更与去重记录在同一事务提交。详见 [多轮会话与审批](docs/step6-conversation.md)。
+### 文件规划与计算隔离
 
-### 4. 有执行边界的文件分析
+文件计划明确工作表、列、筛选和统计操作。常见任务可由本地逻辑规划。启用远程规划时发送问题和表结构，原始文件和预览行在本地处理。计算由容器内固定的 pandas 操作完成，公式用受限表达式重算。无法从字段确定公式或单位时先确认，结果中列出单位、容差和实际偏差。
 
-上传后先预览工作表和原始行。多工作表文件先选表，预览会识别常见标题行并建议多级表头范围。布局有歧义时，确认后再执行。合并表头沿用对应的上层标签，数据区的空白继续作为缺失处理。
+文件计算容器以非 root 用户运行，关闭网络，使用只读根文件系统，限制 CPU、内存、进程数和执行时间。API 经 Unix socket 向启动服务提交任务。Docker socket 仅由启动服务持有。[文件分析与隔离](docs/step7-file-analysis.md)
 
-文件分析保存每个会话最近一次已提交的原文件、问题、布局和结果。打开原链接可恢复图表和下载入口，也可沿用文件继续分析。页面提供「移除已保存文件和结果」。
+### 可追踪的执行结果
 
-计划明确到列、操作和筛选条件，再交给隔离容器中的固定 pandas 操作。远程规划接收问题和结构元数据，原始文件和预览行在本地处理。常见的离线任务包括数值概况、异常值检查、字段明确的单年排名和部分公式核对。
+API 为每次请求记录追踪编号、步骤、耗时、模型调用和 token。配置模型费率后可查看估算成本。可选 LangSmith 导出步骤关系、耗时与用量，原始 SQL、查询结果和上传文件不进入远程追踪。连续三次远程导出失败后暂停上报，本地继续记录。[架构与数据边界](docs/architecture.md) · [追踪配置](docs/release.md#错误和追踪)
 
-- **筛选与 Top N**　先筛选，再进行明细排序或分组汇总。表和图使用同一份有序结果，页面显示参与行数、排名范围与返回条数。
-- **数据质量**　按来源标记区分真实观测、估算填充和未确认。跨期覆盖分析报告样本进出、共同样本对照和固定样本趋势。
-- **公式核对**　用明确的公式和单位逐行重算。标准人均、每百人和人口密度换算可由明确表头推断，单位缺失或冲突时先澄清。默认按显示精度判断舍入误差，也可在问题里指定「容差=0.05」。结果显示公式、单位、实质超差和舍入级差异。
+## 评测与复现
 
-工作容器无网络、使用只读根文件系统和非 root 用户，并限制 CPU、内存、进程数及运行时间。单文件上限 10 MiB，单工作表上限 10,000 数据行、50 列。详见 [文件分析](docs/step7-file-analysis.md)。
+**BIRD SQL 执行准确率（EX）。** 使用固定 BIRD Mini-Dev 划分和 DeepSeek V4 Pro（温度 0），每个配置对同一批题运行三次。EX 比较实际执行结果与参考结果的类型化行集合，执行失败和未答题计入分母。旧版为加入值编码线索、产品 SQL 提示和语义检查之前的产品路径。括号内为三次观测范围。
 
-## 配置模型与数据库
+- **开发集 50 题**　旧版中位数 **44%（40%–46%）**，当前版 **54%（52%–54%）**，提升 **10 个百分点**。
+- **留出集 200 题**　旧版中位数 **32.5%（30%–34%）**，当前版 **39.5%（38.5%–39.5%）**，提升 **7 个百分点**。
+- **延迟与 token**　开发集单题 P95 的三轮中位数由 **6.59 秒**升至 **9.00 秒**，留出集由 **4.50 秒**升至 **5.08 秒**。开发集每轮总 token 中位数由 **60,418** 增至 **73,709**，平均到每题约增加 **266 token**。留出集 600 次执行里，343 次结果与参考不符。
+- **消融和语义检查**　开发集关闭产品 SQL 提示后，完整配置的 EX 中位数高 **4 个百分点**，三次配对差值为 +4 至 +6 个百分点。值编码线索对应 **+2 个百分点**，三次配对差值为 −2 至 +2 个百分点。149 条同 SQL 配对回放中，语义检查未改变 EX。另有 14 道定向题，规则拦下 5 个错误答案，也误拦了 1 个正确答案。
 
-把 `.env.example` 复制为 `.env`，填写 `LLM_API_KEY` 后重建或重启服务。Compose 使用 `RAG_LLM_MODEL` 选择模型。产品评测默认固定 DeepSeek V4 Pro，兼容端点通过 `LLM_BASE_URL` 配置。
+[完整统计、消融方法和误差分类](docs/ci.md#产品路径-bird-评测) · [冻结开发集基准](evaluation/baselines/product_dev.json)
 
-PostgreSQL 可用 Compose 启动十表零售示例库，也可连接部署方授权的外部 schema。在侧栏浏览结构、查看示例值和选择查询范围。详见 [启动与配置](docs/postgres.md)。
+**产品回归。** 发布前宿主环境通过 164 项自动回归。30 个合成对话覆盖 74 轮和 38 个显式槽位断言。20 个表头布局用例中，12 个正确解析，8 个明确阻止错误布局执行。DeepSeek V4 Pro 在十表 PostgreSQL 示例库通过 10/10 道业务题，核对了有序结果、选表范围、CSV 和追踪。GitHub Actions 提交检查覆盖宿主测试、真实文件容器、对话回放、浏览器冒烟和 PostgreSQL。配置模型密钥后，夜间任务按三次中位数检查开发集正确题数和 P95。[持续集成与夜间门禁](docs/ci.md) · [PostgreSQL 验收](docs/postgres.md#验收)
 
-按 [BIRD 数据来源与校验](data/bird/SOURCES.md) 准备数据库后，将 `dev_databases` 以只读方式挂载。
+```bash
+python3.11 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt -r requirements-step7.txt -r requirements-step8.txt
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+准备 [BIRD 数据](data/bird/SOURCES.md) 和模型配置后，用产品入口复跑两组题。逐题日志、提示词和数据指纹、token 与延迟摘要存入本机 `evaluation/results/`。
+
+```bash
+.venv/bin/python -m evaluation.run_product --env-file .env --split dev
+.venv/bin/python -m evaluation.run_product --env-file .env --split eval --workers 5
+```
+
+## 本地服务与部署
+
+### 启动完整服务
+
+```bash
+cp .env.example .env
+# 可在 .env 中填写 LLM_API_KEY，默认容器模型为 deepseek-v4-pro。
+docker compose up --build --wait
+```
+
+默认发布到本机回环地址。打开 [Streamlit 界面](http://127.0.0.1:8501) 和 [FastAPI 文档](http://127.0.0.1:8000/docs)。`LLM_PROVIDER` 和 `LLM_BASE_URL` 选择供应商及兼容端点，`RAG_LLM_MODEL` 覆盖 Compose 模型。状态保存于 Docker 卷。用 `docker compose down` 停止服务。
+
+### 接入外部数据
+
+- **PostgreSQL**　按 [连接器文档](docs/postgres.md) 启动十表零售示例，或配置外部地址、数据库、schema 与独立 reader 账号。正式部署使用 `verify-full` 验证服务端证书和主机名。应用限制在经授权的普通表和已选范围内。BIRD 和 PostgreSQL 自然语言查数需要配置模型。
+- **BIRD SQLite**　按 [数据来源与校验](data/bird/SOURCES.md) 准备数据库，用下面的命令只读挂载。在对话侧栏切换数据源。
 
 ```bash
 RAG_BIRD_DATA_DIR=/absolute/path/to/dev_databases \
   docker compose -f compose.yaml -f compose.bird.yaml up --build --wait
 ```
 
-然后在对话侧栏切换数据源。向量召回需要安装 `requirements-dense.txt`，通过 `python -m evaluation.prepare_dense` 准备模型和索引。独立启动 API 时，可用 `RAG_DENSE_ROOT` 指向索引目录，使用 `RAG_BIRD_ROOT` 指定数据库目录。默认 Compose 使用 BM25 检索路径。
+- **可选向量索引**　安装 `requirements-dense.txt`，运行 `python -m evaluation.prepare_dense`。独立运行 API 时可通过 `RAG_DENSE_ROOT` 指向索引目录、`RAG_BIRD_ROOT` 指向数据库目录。[索引构建和评测](docs/v2-dense-schema.md)
 
-## 评测与复现
+### 单机受控部署
 
-- **产品 SQL 执行准确率（EX）。** BIRD Mini-Dev 固定划分，每个版本三轮。开发集 50 题，旧版 **44%（40%–46%）**，当前版 **54%（52%–54%）**。留出集 200 题，旧版 **32.5%（30%–34%）**，当前版 **39.5%（38.5%–39.5%）**。括号内为实测范围。使用 DeepSeek V4 Pro、温度 0、BM25 与自动字段补注。[评测口径与复现](docs/ci.md#产品路径-bird-评测)
-- **延迟与错误分类。** 当前版各轮单题 P95 的中位数为开发集 **9.00 秒**、留出集 **5.08 秒**，计时覆盖产品查询核心。留出集 200 题重复三轮，600 次请求中有 343 次结果不符、11 次 SQL 重试后仍报相同错误、7 次执行超时、4 次模型输出错误。多轮对话的轮次 P95 单独计为 **1.30 秒**。[评测细节](docs/ci.md#产品路径-bird-评测)
-- **SQL 语义检查。** 14 道定向题中，规则拦下 5 个错误答案，也误拦了 1 个正确答案。149 条 BIRD 候选 SQL 的配对回放中，EX 无变化。[定向题与消融](docs/ci.md#消融与语义检查)
-- **PostgreSQL 示例验收。** DeepSeek V4 Pro 在十表合成零售库上通过 10/10 道业务题，核对有序结果、选表范围、CSV 和追踪。[验收命令](docs/postgres.md#验收)
-- **应用验收。** 宿主项目环境的 **164 项自动回归全部通过**。30 个合成会话通过真实模型和录制回放验收，覆盖 74 轮与 38 个显式槽位断言。20 个表头布局用例中，12 个正确解析、8 个明确阻止执行。
+生产 Compose 通过 Caddy 提供 HTTPS 和账号认证，API 和界面由网关代理。会话、演示库、上传分析、审批、CSV 和追踪按账号隔离。部署文档提供账号配置、独立 reader 校验、镜像扫描记录、状态卷备份和回退流程。上线验收以目标环境的证书、容量和备份恢复结果为准。[单机部署与恢复](docs/release.md)
+
+## API 索引
+
+- `POST /api/v1/chat` 处理对话、澄清和审批申请，`GET /api/v1/sessions/{id}` 读取会话状态，`GET /api/v1/sessions/{id}/messages` 分页读取历史。
+- `GET /api/v1/databases` 列出数据源，`GET /api/v1/databases/postgres/schema` 浏览结构，`POST /api/v1/query` 直接提交只读问数。
+- `POST /api/v1/approvals` 提交演示备注的批准或拒绝。
+- `POST /api/v1/files/preview` 预览文件，`POST /api/v1/files` 提交分析。两个入口接收 `application/octet-stream` 文件字节，共享 `sheet`、`header_row` 和 `header_depth`。用 `GET /api/v1/sessions/{id}/file-analysis` 恢复最近一次分析，用 `DELETE` 删除。
+- `GET /api/v1/results/{trace_id}/csv` 下载查询快照，`GET /api/v1/traces/{id}` 查看追踪，`GET /healthz` 检查服务状态。
+
+用独立演示的 API 发送一条离线问题。继续对话时复用同一 `session_id`。
 
 ```bash
-python3.11 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt -r requirements-step7.txt -r requirements-step8.txt
-.venv/bin/python -m unittest discover -s tests -v
-docker compose build sandbox-image
-.venv/bin/python -m evaluation.run_file_selection
+curl -NsS http://127.0.0.1:18000/api/v1/chat \
+  -H 'Content-Type: application/json' \
+  --data '{"session_id":"f1461498-8902-4678-ac42-36dc38025d65","question":"一共有多少笔订单？"}'
 ```
 
-准备 BIRD 数据和模型配置后，运行 `python -m evaluation.run_product --split dev` 评测 50 道开发题，或用 `--split eval` 评测 200 道留出题。运行配置和逐题日志保存在本机 `evaluation/results/`。
+响应逐行返回处理事件，`result` 事件包含结果，`trace_id` 可用于查询追踪记录。
 
-## API 与文档
-
-- `POST /api/v1/chat` 对话查数、澄清与审批申请，`GET /api/v1/sessions/{id}` 读取当前会话状态。
-- `GET /api/v1/sessions/{id}/messages` 读取会话历史，每页默认 20 轮。响应中的 `next_before` 可作为下一次请求的 `before` 参数读取更早的消息。已登录环境按账号隔离，同一账号可用原链接在其他浏览器继续对话。
-- `POST /api/v1/query` 执行指定数据库的只读问数，`POST /api/v1/approvals` 提交显式审批决定。
-- `GET /api/v1/databases/postgres/schema` 查看 PostgreSQL 表结构。对话和查询可用 `tables` 指定表范围。
-- SQL 查询返回预览和 `total_rows`。`GET /api/v1/results/{trace_id}/csv` 下载同次执行的完整结果，按原查询的行数和排序导出。导出按账号隔离，最多保留 24 小时。超过执行或 8 MiB 导出上限时，页面提示缩小范围。
-- `POST /api/v1/files/preview` 预览，`POST /api/v1/files` 执行分析。两个入口使用相同的 `sheet`、`header_row` 和 `header_depth`。
-- `POST /api/v1/files` 带 `session_id` 时保存本次文件分析。`GET /api/v1/sessions/{id}/file-analysis` 恢复最新结果，`DELETE` 删除保存的文件和结果。
-- `GET /api/v1/traces/{id}` 查看耗时、执行步骤和 token。可通过 `RAG_LANGSMITH_EXPORT=true` 启用 LangSmith，导出步骤关系、时间和用量。
-
-实现入口和数据边界详见 [系统架构](docs/architecture.md)。HTTPS、账号隔离、状态备份与回退见 [单机部署与恢复](docs/release.md)。
-
-本机回归命令、GitHub Actions 检查和夜间真实模型任务见 [持续集成与评测](docs/ci.md)。
+[系统架构](docs/architecture.md) · [文件分析](docs/step7-file-analysis.md) · [部署手册](docs/release.md) · [完整评测](docs/ci.md)

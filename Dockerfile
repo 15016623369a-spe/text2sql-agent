@@ -22,6 +22,7 @@ USER root
 COPY requirements-step7.txt ./
 RUN --mount=type=cache,target=/root/.cache/pip python -m pip install --timeout 15 --retries 2 --only-binary=:all: -r requirements-step7.txt
 COPY .streamlit/config.toml .streamlit/config.toml
+COPY app/product_ui.css app/product_ui.css
 ENV HOME=/tmp
 USER 65532:65532
 CMD ["python", "-m", "streamlit", "run", "app/product_ui.py", "--server.address=0.0.0.0", "--server.headless=true", "--browser.gatherUsageStats=false"]

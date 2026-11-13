@@ -6,6 +6,7 @@ import json
 import os
 import re
 from functools import partial
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import httpx
@@ -33,6 +34,35 @@ STAGES = {
     "sandbox_analysis": "在独立容器中计算",
 }
 CLARIFICATION_FIELDS = {"period": "时间范围", "region": "地区", "metric": "是否扣除退款"}
+DEMO_QUESTIONS = (
+    ("上月净营收", "上月净营收是多少？"),
+    ("各地区订单数", "按地区统计订单数量"),
+    ("上月退款总额", "上月退款总额是多少？"),
+)
+
+
+def render_workspace_header(file_analysis: bool) -> None:
+    title, description = (
+        ("文件分析", "上传 CSV 或 Excel，确认表头，再做排名、图表与公式核对。")
+        if file_analysis else
+        ("和数据对话", "用自然语言查数据库，继续追问，并核对结果背后的 SQL。")
+    )
+    st.html(
+        '<header class="jianshu-hero">'
+        '<div class="jianshu-hero-copy">'
+        f'<h1>{title}</h1><p>{description}</p>'
+        '</div><span class="jianshu-hero-pattern" aria-hidden="true"></span>'
+        '</header>'
+    )
+
+
+def render_demo_questions() -> str | None:
+    with st.container(key="demo-questions"):
+        st.markdown("#### 试问演示订单库")
+        for column, (label, question) in zip(st.columns(len(DEMO_QUESTIONS)), DEMO_QUESTIONS, strict=True):
+            if column.button(label, key=f"example-{label}", width="stretch"):
+                return question
+    return None
 
 
 def get_json(path: str, *, params: dict | None = None) -> dict:
@@ -139,7 +169,7 @@ def render_file_tables(report: dict, key: str | None) -> None:
 def render(result: dict, trace: dict | None = None, chart_key: str | None = None) -> None:
     kind = result.get("kind")
     if kind == "answer":
-        st.markdown(f"营收 **¥{result['revenue_cny']}**")
+        st.metric("营收", f"¥{result['revenue_cny']}")
     elif kind == "clarification":
         if original := result.get("original_question"):
             st.caption(f"待确认的问题 · {original}")
@@ -222,7 +252,12 @@ def render(result: dict, trace: dict | None = None, chart_key: str | None = None
         report = result["report"]
         render_file_tables(report, chart_key)
         if report["figure"] is not None:
-            st.plotly_chart(report["figure"], key=chart_key, width="stretch", config={"displaylogo": False})
+            figure = {**report["figure"], "layout": {
+                **report["figure"]["layout"], "paper_bgcolor": "#FFFFFF", "plot_bgcolor": "#FFFFFF",
+                "colorway": ["#147D60", "#438A9E", "#7E65A8", "#B26B34", "#5A7A53", "#9F5369"],
+                "font": {"family": "Inter, system-ui, sans-serif", "color": "#244A3A"},
+            }}
+            st.plotly_chart(figure, key=chart_key, width="stretch", config={"displaylogo": False})
     if trace:
         with st.expander("本次追踪"):
             st.caption(f"{trace['trace_id']} · {trace['latency_ms']:.0f} ms · {trace['model_calls']} 次模型调用")
@@ -399,7 +434,7 @@ def choose_postgres_tables(session_id: str, saved_tables: list[str]) -> list[str
     return selected
 
 
-st.set_page_config(page_title="Text2SQL Agent", layout="wide")
+st.set_page_config(page_title="见数 · Text2SQL Agent", layout="wide")
 GATEWAY_KEY = configured_key()
 GATEWAY_HEADERS = {}
 user = None
@@ -410,8 +445,11 @@ if GATEWAY_KEY is not None:
         st.stop()
     GATEWAY_HEADERS = {KEY_HEADER: GATEWAY_KEY, USER_HEADER: user}
 
-st.title("和数据对话")
-st.caption("查询数据库、继续上轮问题，或上传表格分析。")
+st.html(Path(__file__).with_name("product_ui.css"))
+st.sidebar.html(
+    '<div class="jianshu-brand"><span class="jianshu-mark" aria-hidden="true">见</span>'
+    '<strong>见数</strong></div>'
+)
 
 try:
     session_id = str(UUID(st.query_params.get("session", "")))
@@ -431,6 +469,7 @@ except (httpx.HTTPError, ValueError):
 
 mode = st.sidebar.radio("工作区", ["对话", "文件分析"],
                         index=int(st.query_params.get("workspace") == "file"), key="workspace-mode")
+render_workspace_header(mode == "文件分析")
 if mode == "文件分析" and st.query_params.get("workspace") != "file":
     st.query_params["workspace"] = "file"
 elif mode == "对话" and st.query_params.get("workspace") == "file":
@@ -490,7 +529,7 @@ else:
         else:
             st.caption(f"当前数据源为 {database}。可以继续追问，也可以在侧栏切换数据源。")
     else:
-        st.caption("可以问订单数量、退款、地区对比或订单明细，也可以直接问「你能做什么？」。")
+        st.caption("当前数据源为演示订单库。")
     if view["before"] is not None and st.button("返回最新消息"):
         view["before"] = None
         st.rerun()
@@ -530,6 +569,8 @@ else:
         for button, option in zip(st.columns(len(options)), options, strict=True):
             if button.button(option, key=f"clarify-{option}"):
                 quick_reply = option
+    elif not history and not unsaved and database is None and pending["kind"] == "empty":
+        quick_reply = render_demo_questions()
     composer = st.empty()
     question = composer.chat_input("输入你的问题", max_chars=500,
                                    disabled=not postgres_ready or pending["kind"] in {"approval", "approval_recorded"})
